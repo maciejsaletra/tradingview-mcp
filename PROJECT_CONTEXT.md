@@ -61,6 +61,21 @@ ICT/SMC (Smart Money Concepts) — Order Blocks (OB), Fair Value Gaps (FVG), Bre
 
 **Logo embedding:** `base64 -w 0 /mnt/user-data/outputs/trading_room_workshop_logo.jpg > /tmp/logo_b64.txt` → embed as `data:image/jpeg;base64,[string]` in `<img>` tag in HTML card.
 
+## Trade Log & Statistics (mandatory, every analysis)
+
+Zapisuj analizy, wyniki i wnioski w sposób uporządkowany, tak aby statystyka była rzetelna, przejrzysta i możliwa do późniejszego sprawdzenia. Dane mają służyć do oceny skuteczności strategii, porównywania wyników w czasie, wykrywania powtarzalnych schematów oraz identyfikowania elementów, które realnie poprawiają lub pogarszają wyniki. Zapisuj także ważne wątki i kluczowe obserwacje z analiz, aby w przyszłości można było korzystać z tej historii do dalszych analiz i wyciągania wniosków. Priorytetem jest tworzenie wiarygodnej bazy danych do analizy skuteczności, a nie tylko zapisywanie pojedynczych obserwacji.
+
+Practical implementation:
+- After every analysis/signal, append a structured row/entry to a persistent log file (e.g. `trade_log.csv` or `trade_log.md` in this repo) — do not just print results in chat and let them disappear.
+- Each entry should capture at minimum: date/time, symbol, timeframe, setup type (OB/FVG/BOS/CHoCH), entry, SL, TP1/TP2, probability %, actual outcome (hit/missed/pending), RR achieved, and a short note on key observations.
+- Periodically (e.g. weekly/EOD) summarize the log: win rate, average RR, which setup types perform best, which conditions (e.g. high-impact news nearby) correlate with losses.
+- This log is the source of truth for "Current State" section above — update that section from the log, not from memory.
+
+## Branding
+
+- TRW logo file: store locally at `assets/trw_logo.jpg` (or equivalent local path) in this repo — must be embedded in every generated signal card (base64-encode and inline in the `<img>` tag of the HTML card).
+- Logo design reference: gold/dark theme, ICT liquidity-sweep diagram (BSL/SSL, 0.618/0.786/1.272/1.618 fib levels) framing two robot mascots and "TRADING ROOM WORKSHOP" wordmark, Telegram icon at bottom — consistent with the #0d1117/#f5c842 dark/gold signal card theme.
+
 ## Tools & Resources
 
 - TradingView Desktop with MCP integration (CDP port 9222, `node server.js`), Premium account
