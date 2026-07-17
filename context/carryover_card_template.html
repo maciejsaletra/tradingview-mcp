@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<!--
+PLAN [SESJA] CARD — Render: node src/cli/index.js card render --html FILE --out OUT --width 800
+Pipeline: §7b M15 standard → fill-carryover CLI → PNG → Telegram topic instrumentu
+Nagłówek: PLAN ASIA / PLAN LONDYN / PLAN NEW YORK (UTC: 00-07 / 08-12 / 13-21 / OFF-SESSION 22-23)
+Czas wyświetlany: UTC → London BST (UTC+1 lato) / GMT (UTC+0 zima) — nigdy nie mieszaj bez opisu.
+Placeholders wypełniane przez fillCarryoverTemplate():
+  LOGO_SRC CHART_BLOCK INCOMPLETE_BANNER M5_SCALP_BLOCK
+  SESSION_LABEL SESSION_TAG SESSION_DISPLAY
+  TICKER SETUP_LABEL DATE_TIME DATE_TIME_LONDON BIAS_TEXT BIAS_BG BIAS_COLOR
+  TF_D1 TF_H4 TF_H1 TF_M15 STATUS_HEADLINE STATUS_COLOR BARWALK_TEXT
+  ENTRY_RANGE SL SL_UPDATE_BADGE TP1 TP2 TP3_TILE LEVELS_COLS
+  SETUP_TYPE RR_PLANNED CONFIDENCE CONF_CLASS NEWS_RISK NEWS_RISK_COLOR NEWS_CONTEXT
+Semantyka TF (po polsku, z realnych OHLCV — nigdy zmyślana):
+  TF_D1  = trend + % zmiany od początku tygodnia
+  TF_H4  = trend + % zmiany od wczoraj/poprz. sesji
+  TF_H1  = struktura intraday: trend/range/CHoCH/BOS
+  TF_M15 = lokalny order flow przy setupie: pullback/range/sweep/CHoCH
+Bias: LONG → BIAS_BG #123a12, BIAS_COLOR #4ade80 · SHORT → #3a1212 / #f87171
+STATUS_COLOR: aktywny #4ade80 · blisko SL #f5c842 · oczekujący #94a3b8
+NEWS_RISK_COLOR: none #4ade80 · low #f5c842 · high #f87171
+CONF_CLASS: conf-high (≥75%) · conf-mid (65-74%) · conf-low (<65%)
+Logo: WYŁĄCZNIE z assets/trw_logo.jpg — fillCarryoverTemplate() osadza jako base64; nie kopiuj ręcznie.
+Screenshot §7b: WYŁĄCZNIE *_m15_standard_*.png + _meta.json (TF=15, entry_box, sl, tp). H1 = BUG.
+M5 scalp: sekcja „Dzień dobry – M5 scalp trade" — auto-generowana ze setupu, widoczna gdy m5Show=true.
+-->
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0c; color: #d6d6d2; font-family: 'Segoe UI', sans-serif; font-size: 13px; padding: 18px; max-width: 760px; margin: 0 auto; }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; }
+.header-left { display: flex; align-items: center; gap: 12px; }
+.logo { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 2px solid #f5c842; box-shadow: 0 0 0 3px #16140d; flex-shrink: 0; align-self: flex-start; margin-top: 2px; }
+.logo-missing { width: 46px; height: 46px; border-radius: 50%; background: #1e1f24; border: 2px dashed #4a4a45; display: flex; align-items: center; justify-content: center; color: #4a4a45; font-size: 8px; text-align: center; flex-shrink: 0; line-height: 1.3; padding: 2px; }
+.brand { color: #f5c842; font-size: 10px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; }
+.card-title { color: #ffffff; font-size: 19px; font-weight: 900; line-height: 1.15; margin: 2px 0; }
+.card-sub { color: #7a7a75; font-size: 11px; }
+.header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.ticker { color: #ffffff; font-size: 22px; font-weight: 800; letter-spacing: 0.5px; }
+.bias-badge { padding: 5px 13px; border-radius: 6px; font-size: 11px; font-weight: 800; background: <BIAS_BG>; color: <BIAS_COLOR>; border: 1px solid <BIAS_COLOR>; }
+.chart-img { width: 100%; display: block; border-radius: 8px; border: 1px solid #1e1f24; margin-bottom: 12px; }
+.chart-placeholder { width: 100%; min-height: 180px; background: #0d0e11; border: 2px dashed #2a2a30; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #4a4a45; font-size: 12px; font-style: italic; margin-bottom: 12px; padding: 16px; text-align: center; line-height: 1.6; }
+.card-incomplete { background: #2a0f0f; color: #f87171; font-size: 10px; font-weight: 700; text-align: center; padding: 4px 8px; letter-spacing: 0.5px; border-radius: 4px; margin-bottom: 12px; }
+.section { margin-bottom: 12px; }
+.sec-title { color: #f5c842; font-size: 10px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 7px; padding-bottom: 4px; border-bottom: 1px solid #1e1e24; }
+.tf-row { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid #14151a; }
+.tf-row:last-child { border-bottom: none; }
+.tf-tag { background: #1e1f24; color: #f5c842; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px; flex-shrink: 0; min-width: 38px; text-align: center; }
+.tf-text { flex: 1; font-size: 12px; line-height: 1.55; color: #c0c0bb; }
+.tf-text b { color: #ffffff; }
+.tf-text .green { color: #4ade80; font-weight: 700; } .tf-text .red { color: #f87171; font-weight: 700; } .tf-text .gold { color: #f5c842; font-weight: 700; }
+.status-box { background: #0e0f12; border: 1px solid #1e1f24; border-left: 3px solid <STATUS_COLOR>; border-radius: 8px; padding: 11px 14px; }
+.status-headline { font-size: 14px; font-weight: 800; color: <STATUS_COLOR>; margin-bottom: 5px; }
+.status-barwalk { font-size: 11.5px; line-height: 1.6; color: #9a9a95; }
+.status-barwalk b { color: #d6d6d2; }
+.m5-section { background: #0a100a; border: 1px solid #1e3020; border-left: 3px solid #4ade80; border-radius: 8px; padding: 11px 14px; margin-bottom: 12px; }
+.m5-header { color: #4ade80; font-size: 11px; font-weight: 800; letter-spacing: 0.4px; margin-bottom: 9px; }
+.m5-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
+.m5-tile { background: #0e1410; border: 1px solid #1e2a1e; border-radius: 7px; padding: 8px 6px; text-align: center; }
+.m5-lbl { color: #5a7a5a; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+.m5-val { font-size: 12.5px; font-weight: 800; color: #d6d6d2; }
+.m5-val.val-entry { color: #f5c842; } .m5-val.val-sl { color: #f87171; } .m5-val.val-tp { color: #4ade80; }
+.m5-status-waiting { color: #94a3b8; } .m5-status-taken { color: #4ade80; } .m5-status-invalidated { color: #f87171; }
+.m5-note { font-size: 11px; color: #7a9a7a; line-height: 1.6; font-style: italic; }
+.levels-grid { display: grid; grid-template-columns: repeat(<LEVELS_COLS>, 1fr); gap: 8px; }
+.level-tile { background: #121317; border: 1px solid #23242a; border-radius: 8px; padding: 9px 8px; text-align: center; }
+.level-lbl { color: #7a7a75; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.level-val { font-size: 13.5px; font-weight: 800; }
+.val-entry { color: #f5c842; } .val-sl { color: #f87171; } .val-tp { color: #4ade80; }
+.sl-update-badge { margin-top: 4px; font-size: 9px; font-weight: 700; color: #f5c842; letter-spacing: 0.4px; text-transform: uppercase; }
+.sys-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.sys-chip { background: #121317; border: 1px solid #23242a; border-radius: 6px; padding: 6px 11px; font-size: 11px; color: #9a9a95; }
+.sys-chip b { color: #ffffff; font-weight: 800; }
+.sys-chip .news-val { font-weight: 800; color: <NEWS_RISK_COLOR>; }
+.conf-high { font-weight: 800; color: #4ade80; }
+.conf-mid  { font-weight: 800; color: #f5c842; }
+.conf-low  { font-weight: 800; color: #94a3b8; }
+.sys-context { margin-top: 8px; padding: 7px 12px; background: #0a0f1a; border: 1px solid #1a2030; border-radius: 6px; font-size: 11px; color: #7a8aa5; font-style: italic; }
+.footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid #14151a; color: #3a3a35; font-size: 10px; }
+.footer .trw { color: #f5c842; font-weight: 700; }
+</style>
+</head>
+<body>
+<INCOMPLETE_BANNER>
+<div class="header">
+  <div class="header-left">
+    <LOGO_BLOCK>
+    <div>
+      <div class="brand">Trading Room Workshop</div>
+      <div class="card-title">PLAN <SESSION_LABEL></div>
+      <div class="card-sub"><SETUP_LABEL> &ndash; <DATE_TIME_LONDON> &ndash; <SESSION_LABEL></div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="ticker"><TICKER></div>
+    <div class="bias-badge"><BIAS_TEXT></div>
+  </div>
+</div>
+
+<CHART_BLOCK>
+
+<div class="section">
+  <div class="sec-title">&#128202; Struktura TF</div>
+  <div class="tf-row"><span class="tf-tag">D1</span><span class="tf-text"><TF_D1></span></div>
+  <div class="tf-row"><span class="tf-tag">H4</span><span class="tf-text"><TF_H4></span></div>
+  <div class="tf-row"><span class="tf-tag">H1</span><span class="tf-text"><TF_H1></span></div>
+  <div class="tf-row"><span class="tf-tag">M15</span><span class="tf-text"><TF_M15></span></div>
+</div>
+
+<div class="section">
+  <div class="sec-title">&#128260; Status setupu</div>
+  <div class="status-box">
+    <div class="status-headline"><STATUS_HEADLINE></div>
+    <div class="status-barwalk"><BARWALK_TEXT></div>
+  </div>
+</div>
+
+<M5_SCALP_BLOCK>
+
+<div class="section">
+  <div class="sec-title">&#127919; Poziomy transakcji</div>
+  <div class="levels-grid">
+    <div class="level-tile"><div class="level-lbl">Entry</div><div class="level-val val-entry"><ENTRY_RANGE></div></div>
+    <div class="level-tile"><div class="level-lbl">SL</div><div class="level-val val-sl"><SL></div><div class="sl-update-badge"><SL_UPDATE_BADGE></div></div>
+    <div class="level-tile"><div class="level-lbl">TP1</div><div class="level-val val-tp"><TP1></div></div>
+    <div class="level-tile"><div class="level-lbl">TP2</div><div class="level-val val-tp"><TP2></div></div>
+    <TP3_TILE>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title">&#9881; Pola systemowe</div>
+  <div class="sys-row">
+    <div class="sys-chip">session: <b><SESSION_DISPLAY></b></div>
+    <div class="sys-chip">lifecycle: <b>carry-over</b></div>
+    <div class="sys-chip">setup_type: <b><SETUP_TYPE></b></div>
+    <div class="sys-chip">rr_planned: <b><RR_PLANNED></b></div>
+    <div class="sys-chip">confidence: <span class="<CONF_CLASS>"><CONFIDENCE>%</span></div>
+    <div class="sys-chip">news_risk: <span class="news-val"><NEWS_RISK></span></div>
+  </div>
+  <div class="sys-context">&#128240; <NEWS_CONTEXT></div>
+</div>
+
+<div class="footer">
+  <span>&#129302; Claude AI &raquo; <span class="trw">Trading Room Workshop</span> &middot; wygenerowano automatycznie</span>
+  <span>To nie jest porada inwestycyjna</span>
+</div>
+
+</body>
+</html>
+<!--
+TP3_TILE wzór (gdy setup ma TP3 — ustaw LEVELS_COLS=5):
+<div class="level-tile"><div class="level-lbl">TP3</div><div class="level-val val-tp">53800</div></div>
+Gdy brak TP3: TP3_TILE = pusty string, LEVELS_COLS=4.
+
+M5_SCALP_BLOCK — wzór renderowany przez card.js gdy m5Show=true:
+<div class="m5-section">
+  <div class="m5-header">☀ Dzień dobry – M5 scalp trade</div>
+  <div class="m5-grid">
+    <div class="m5-tile"><div class="m5-lbl">Entry (retest)</div><div class="m5-val val-entry">4146–4163</div></div>
+    <div class="m5-tile"><div class="m5-lbl">SL</div><div class="m5-val val-sl">4112</div></div>
+    <div class="m5-tile"><div class="m5-lbl">TP</div><div class="m5-val val-tp">4221</div></div>
+    <div class="m5-tile"><div class="m5-lbl">Status</div><div class="m5-val m5-status-waiting">waiting</div></div>
+  </div>
+  <div class="m5-note">Retest strefy ENTRY od góry na M5 — spójny z planem LONG M15. Wejście po bazie M5 (BOS lub bullish engulf w strefie).</div>
+</div>
+Gdy m5Show=false: M5_SCALP_BLOCK = pusty string.
+
+LOGO_BLOCK — card.js osadza <img class="logo" src="data:...base64..."> z assets/trw_logo.jpg.
+Gdy plik brakuje: <div class="logo-missing">TRW logo missing</div>
+-->

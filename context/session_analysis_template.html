@@ -1,0 +1,192 @@
+<!--
+PRE-SESSION ANALYSIS CARD — APPROVED by Magic 2026-07-06 (reference screenshot: XAUUSD 06.07 00:20 UTC).
+Locked layout. Published BEFORE EVERY SESSION for the primary instrument (weekdays: XAUUSD always, to `xau` topic;
+weekend crypto: BTCUSDT as primary, to `krypto` topic). Signal cards (context/commercial_card_template.html)
+are sent SEPARATELY after this, only for setups that clear the Signal Risk Engine.
+
+USAGE: fill placeholders, duplicate repeating rows as needed, then:
+  node src/cli/index.js card render - -html "<filled>.html" - -out "<out>.png" - -width 1100
+(remove space in --html/--out; written with space here only so this comment can't break argument parsing)
+
+PLACEHOLDERS: <LOGO_BASE64> <DATE_TIME_UTC> <TICKER> <PRICE> <BIAS_BADGE=LONG BIAS/SHORT BIAS/NEUTRAL>
+<BIAS_BG>/<BIAS_TEXT> (long: #123a12/#4ade80, short: #3a1212/#f87171, neutral: #3a2f12/#f5c842)
+PREV_SETUP_HTML, CONTEXT_HTML, tiles, session plan bullets, scenarios A/B/C+%, BSL/SSL rows, FVG rows,
+FIB entry/target, transaction levels rows (✓ where hit), RR tiles.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0c; color: #d6d6d2; font-family: 'Segoe UI', sans-serif; font-size: 13px; padding: 20px; max-width: 1080px; margin: 0 auto; }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.header-left { display: flex; align-items: center; gap: 12px; }
+.logo { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid #f5c842; box-shadow: 0 0 0 3px #16140d; }
+.brand { color: #f5c842; font-size: 15px; font-weight: 800; letter-spacing: 1px; }
+.brand-sub { color: #8a8a85; font-size: 11px; margin-top: 2px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.ticker { color: #ffffff; font-size: 24px; font-weight: 800; }
+.price { color: #f5c842; font-size: 22px; font-weight: 700; }
+.bias-badge { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 800; background: <BIAS_BG>; color: <BIAS_TEXT>; border: 1px solid <BIAS_TEXT>; }
+.cols { display: grid; grid-template-columns: 1fr 1.06fr; gap: 14px; }
+.panel { background: #121317; border: 1px solid #23242a; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; }
+.panel-gold { border-color: #6b5a1e; background: #16140d; }
+.p-title { color: #f5c842; font-size: 11px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 8px; }
+.p-body { font-size: 12.5px; line-height: 1.65; color: #cfcfca; }
+.p-body b { color: #ffffff; }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+.tile { background: #121317; border: 1px solid #23242a; border-radius: 8px; padding: 10px 8px; text-align: center; }
+.tile-lbl { color: #7a7a75; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+.tile-val { font-size: 13px; font-weight: 800; color: #ffffff; }
+.tile-val.green { color: #4ade80; } .tile-val.red { color: #f87171; } .tile-val.gold { color: #f5c842; }
+.sess-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sess-box { background: #0e0f12; border: 1px solid #1e1f24; border-radius: 8px; padding: 10px 12px; }
+.sess-title { color: #ffffff; font-size: 12px; font-weight: 700; margin-bottom: 7px; }
+.sess-box ul { padding-left: 15px; }
+.sess-box li { font-size: 11.5px; line-height: 1.6; color: #b8b8b3; margin-bottom: 3px; }
+.scen { display: flex; align-items: center; gap: 10px; background: #0e0f12; border: 1px solid #1e1f24; border-radius: 8px; padding: 9px 12px; margin-bottom: 7px; }
+.scen-letter { width: 22px; height: 22px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0; }
+.scen-a .scen-letter { background: #123a12; color: #4ade80; } .scen-b .scen-letter { background: #3a2f12; color: #f5c842; } .scen-c .scen-letter { background: #3a1212; color: #f87171; }
+.scen-text { flex: 1; font-size: 12px; line-height: 1.5; color: #cfcfca; }
+.scen-prob { font-size: 14px; font-weight: 800; flex-shrink: 0; }
+.scen-a .scen-prob { color: #4ade80; } .scen-b .scen-prob { color: #f5c842; } .scen-c .scen-prob { color: #f87171; }
+.liq-head { font-size: 11px; font-weight: 800; margin: 8px 0 6px; }
+.liq-head.bsl { color: #f87171; } .liq-head.ssl { color: #4ade80; }
+.liq-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #1c1d22; font-size: 12px; }
+.liq-row:last-child { border-bottom: none; }
+.tf-tag { background: #1e1f24; color: #9a9a95; font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+.liq-lbl { flex: 1; color: #b8b8b3; }
+.liq-price { font-weight: 800; } .liq-price.red { color: #f87171; } .liq-price.green { color: #4ade80; } .liq-price.white { color: #ffffff; }
+.fvg-sq { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.fvg-sq.green { background: #22c55e; } .fvg-sq.pink { background: #ec4899; }
+.fib-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fib-box { background: #0e0f12; border: 1px solid #1e1f24; border-radius: 8px; padding: 10px 12px; }
+.fib-lbl { color: #7a7a75; font-size: 10px; margin-bottom: 4px; }
+.fib-val { color: #f5c842; font-size: 14px; font-weight: 800; }
+.lvl-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #1c1d22; }
+.lvl-row:last-child { border-bottom: none; }
+.lvl-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.dot-entry { background: #f5c842; } .dot-sl { background: #f87171; } .dot-tp { background: #2dd4bf; }
+.lvl-main { flex: 1; }
+.lvl-name { color: #ffffff; font-size: 12.5px; font-weight: 700; }
+.lvl-note { color: #7a7a75; font-size: 10.5px; margin-top: 2px; }
+.lvl-price { color: #ffffff; font-size: 13px; font-weight: 800; white-space: nowrap; }
+.rr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+.rr-tile { background: #16140d; border: 1px solid #6b5a1e; border-radius: 8px; padding: 10px; text-align: center; }
+.rr-lbl { color: #7a7a75; font-size: 9.5px; text-transform: uppercase; margin-bottom: 4px; }
+.rr-val { color: #f5c842; font-size: 15px; font-weight: 800; }
+.footer { text-align: center; color: #5a5a55; font-size: 10px; margin-top: 14px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <img class="logo" src="data:image/jpeg;base64,<LOGO_BASE64>" alt="TRW">
+    <div>
+      <div class="brand">TRADING ROOM WORKSHOP</div>
+      <div class="brand-sub"><DATE_TIME_UTC> · ICT/SMC · MTF D1/H4/H1/M15</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="ticker"><TICKER></span>
+    <span class="price"><PRICE></span>
+    <span class="bias-badge"><BIAS_BADGE></span>
+  </div>
+</div>
+
+<div class="cols">
+<div>
+
+  <div class="panel panel-gold">
+    <div class="p-title">🔷 Poprzedni setup</div>
+    <div class="p-body"><PREV_SETUP_HTML></div>
+  </div>
+
+  <div class="panel panel-gold">
+    <div class="p-title">⚡ Kontekst rynkowy</div>
+    <div class="p-body"><CONTEXT_HTML></div>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><div class="tile-lbl">Bias D1</div><div class="tile-val green"><TILE_BIAS_D1></div></div>
+    <div class="tile"><div class="tile-lbl">Struktura H4</div><div class="tile-val"><TILE_H4></div></div>
+    <div class="tile"><div class="tile-lbl">Faza</div><div class="tile-val"><TILE_FAZA></div></div>
+    <div class="tile"><div class="tile-lbl">Prawdop.</div><div class="tile-val gold"><TILE_PROB></div></div>
+  </div>
+
+  <div class="panel">
+    <div class="p-title">📋 Plan sesyjny</div>
+    <div class="sess-grid">
+      <div class="sess-box">
+        <div class="sess-title"><SESS1_TITLE></div>
+        <ul><SESS1_BULLETS_LI></ul>
+      </div>
+      <div class="sess-box">
+        <div class="sess-title"><SESS2_TITLE></div>
+        <ul><SESS2_BULLETS_LI></ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="p-title">🗂 Scenariusze</div>
+    <div class="scen scen-a"><div class="scen-letter">A</div><div class="scen-text"><SCEN_A_TEXT></div><div class="scen-prob"><SCEN_A_PROB></div></div>
+    <div class="scen scen-b"><div class="scen-letter">B</div><div class="scen-text"><SCEN_B_TEXT></div><div class="scen-prob"><SCEN_B_PROB></div></div>
+    <div class="scen scen-c"><div class="scen-letter">C</div><div class="scen-text"><SCEN_C_TEXT></div><div class="scen-prob"><SCEN_C_PROB></div></div>
+  </div>
+
+</div>
+<div>
+
+  <div class="panel">
+    <div class="p-title">💧 Mapa płynności</div>
+    <div class="liq-head bsl">▲ BSL (Buy Side Liquidity)</div>
+    <BSL_ROWS>
+    <div class="liq-head ssl" style="margin-top:12px;">▼ SSL (Sell Side Liquidity)</div>
+    <SSL_ROWS>
+  </div>
+
+  <div class="panel">
+    <div class="p-title">✳ FVG aktywne</div>
+    <FVG_ROWS>
+  </div>
+
+  <div class="panel">
+    <div class="p-title">📐 Fibonacci</div>
+    <div class="fib-grid">
+      <div class="fib-box"><div class="fib-lbl">Strefa Entry</div><div class="fib-val"><FIB_ENTRY></div></div>
+      <div class="fib-box"><div class="fib-lbl">Target</div><div class="fib-val"><FIB_TARGET></div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="p-title">🎯 Poziomy transakcji</div>
+    <LEVEL_ROWS>
+  </div>
+
+  <div class="rr-grid">
+    <div class="rr-tile"><div class="rr-lbl">TP1</div><div class="rr-val"><RR_TP1></div></div>
+    <div class="rr-tile"><div class="rr-lbl">TP2</div><div class="rr-val"><RR_TP2></div></div>
+    <div class="rr-tile"><div class="rr-lbl">TP3</div><div class="rr-val"><RR_TP3></div></div>
+  </div>
+
+</div>
+</div>
+
+<div class="footer">🤖 Claude AI » Trading Room Workshop · wygenerowano automatycznie</div>
+
+</body>
+</html>
+<!--
+ROW SNIPPETS (copy per item):
+BSL/SSL row:
+<div class="liq-row"><span class="tf-tag">D1</span><span class="liq-lbl">CDH/CWH — opis</span><span class="liq-price red">4 201.50</span></div>
+(SSL rows: class "white" or "green" for price)
+FVG row:
+<div class="liq-row"><span class="tf-tag">H1</span><span class="fvg-sq green"></span><span class="liq-lbl">FVG wsparcie (opis)</span><span class="liq-price white">4 155.33–4 176.33</span></div>
+Level row:
+<div class="lvl-row"><span class="lvl-dot dot-entry"></span><div class="lvl-main"><div class="lvl-name">Entry</div><div class="lvl-note">opis</div></div><span class="lvl-price">4 155–4 165</span></div>
+(dots: dot-entry gold / dot-sl red / dot-tp teal; add ✓ in lvl-name or lvl-price when hit)
+-->

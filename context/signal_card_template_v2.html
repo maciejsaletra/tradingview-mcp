@@ -1,0 +1,529 @@
+<!--
+SIGNAL CARD TEMPLATE v2 — TRW (2026-07-09)
+Canvas-based chart with 200 procedural M15 candles + key levels.
+
+USAGE:
+  1. Copy this file to a working path, e.g. screenshots/trw/xauusd_20260709_1500.html
+  2. Embed the logo:
+       node -e "process.stdout.write(require('fs').readFileSync('assets/trw_logo.jpg').toString('base64'))" > /tmp/logo_b64.txt
+     Then replace <LOGO_BASE64> below with the file contents.
+  3. Fill in the CONFIG block inside <script> — that's the only section you edit per setup.
+  4. Render to PNG:
+       node src/cli/index.js card render --html <path>.html --out <path>.png --width 800
+  5. Send to Telegram:
+       node src/cli/index.js telegram send-doc --photo <path>.png --topic <xau|waluty|indeksy|krypto>
+
+PLACEHOLDERS in HTML (replace before render):
+  <LOGO_BASE64>      assets/trw_logo.jpg as base64 string (no line breaks)
+  All other data comes from the CONFIG block in <script>.
+
+DIRECTION colors:
+  BUY  → dirBg: '#173404'  dirText: '#97c459'
+  SELL → dirBg: '#3a0f0f'  dirText: '#f0997b'
+
+CONFLUENCE_TEXT: describe what overlaps, e.g. "M30 0.618 + M15 Bullish OB + H1 FVG · 57.91–58.32"
+If no confluence zone → set confluenceText: null (badge hidden).
+
+ANCHORS: shape the price narrative. i=0 = oldest candle, i=199 = current.
+  Add anchor points at the key structural moments: high, start of pullback,
+  mid-pullback, OTE touch, CHoCH candle, mid-recovery, current price.
+  Minimum: [{i:0,p:startPrice}, {i:199,p:currentPrice}]
+
+CHOCH_INDEX: candle index (0–199) to annotate with CHoCH label.
+  Set to null to hide the annotation.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0b0b0c;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  padding: 20px;
+  max-width: 660px;
+  margin: 0 auto;
+  color: #f2f2f2;
+}
+.card {
+  background: #0b0b0c;
+  border-radius: 10px;
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 12px;
+}
+.header-left { display: flex; align-items: center; gap: 11px; }
+.logo-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.ticker-block .ticker {
+  font-size: 22px;
+  font-weight: 500;
+  color: #f2f2f2;
+  letter-spacing: 0.3px;
+  line-height: 1.1;
+}
+.ticker-block .subtitle {
+  color: #8a8a82;
+  font-size: 11.5px;
+  margin-top: 3px;
+  line-height: 1.3;
+}
+.header-right { text-align: right; flex-shrink: 0; }
+.dir-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+.session-tag {
+  color: #5a5a52;
+  font-size: 10px;
+  margin-top: 5px;
+  line-height: 1.5;
+}
+.chart-wrap {
+  border-radius: 6px;
+  overflow: hidden;
+  background: #0d0f10;
+  margin-bottom: 12px;
+}
+canvas { display: block; width: 100%; height: auto; }
+.confluence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(184,126,10,0.12);
+  border: 1px solid rgba(184,126,10,0.3);
+  color: #b87e0a;
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 12px;
+  margin-bottom: 11px;
+  letter-spacing: 0.3px;
+}
+.confluence-badge .dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #b87e0a;
+  flex-shrink: 0;
+}
+.levels-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  margin-bottom: 11px;
+}
+.level-tile {
+  background: #18181a;
+  border-radius: 6px;
+  padding: 9px 10px;
+  text-align: center;
+}
+.level-lbl {
+  color: #5a5a55;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+}
+.level-val {
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.val-entry { color: #f2f2f2; }
+.val-sl    { color: #e05555; }
+.val-tp1   { color: #63b370; }
+.val-tp2   { color: #4d9a5d; }
+.rr-strip { display: flex; gap: 7px; margin-bottom: 12px; }
+.rr-tile {
+  flex: 1;
+  background: #111213;
+  border-radius: 6px;
+  padding: 7px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.rr-lbl  { color: #5a5a55; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.8px; }
+.rr-val  { font-size: 13px; font-weight: 500; color: #63b370; font-variant-numeric: tabular-nums; }
+.rr-risk { font-size: 11px; color: #8a8a82; font-variant-numeric: tabular-nums; }
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.conf-wrap { display: flex; align-items: center; gap: 8px; }
+.conf-bar-bg {
+  width: 80px; height: 4px;
+  background: #222;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.conf-bar-fill { height: 100%; background: linear-gradient(90deg, #b87e0a, #d49a20); border-radius: 2px; }
+.conf-text { color: #7a7a75; font-size: 10.5px; }
+.conf-num  { color: #b87e0a; font-weight: 600; }
+.disclaimer { color: #3a3a35; font-size: 9.5px; letter-spacing: 0.2px; }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="header">
+    <div class="header-left">
+      <img class="logo-img" id="logoImg" src="data:image/jpeg;base64,<LOGO_BASE64>" alt="TRW">
+      <div class="ticker-block">
+        <div class="ticker"  id="elTicker"></div>
+        <div class="subtitle" id="elSubtitle"></div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="dir-badge" id="elDirBadge"></div>
+      <div class="session-tag" id="elSession"></div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="chartCanvas" width="1200" height="520"></canvas>
+  </div>
+
+  <div id="confluenceWrap" class="confluence-badge" style="display:none">
+    <span class="dot"></span>
+    <span id="elConfluence"></span>
+  </div>
+
+  <div class="levels-grid">
+    <div class="level-tile">
+      <div class="level-lbl">Entry</div>
+      <div class="level-val val-entry" id="elEntry" style="font-size:11px;"></div>
+    </div>
+    <div class="level-tile">
+      <div class="level-lbl">SL</div>
+      <div class="level-val val-sl" id="elSL"></div>
+    </div>
+    <div class="level-tile">
+      <div class="level-lbl">TP1</div>
+      <div class="level-val val-tp1" id="elTP1"></div>
+    </div>
+    <div class="level-tile">
+      <div class="level-lbl">TP2</div>
+      <div class="level-val val-tp2" id="elTP2"></div>
+    </div>
+  </div>
+
+  <div class="rr-strip">
+    <div class="rr-tile">
+      <span class="rr-lbl">R:R TP1</span>
+      <span class="rr-val" id="elRR1"></span>
+    </div>
+    <div class="rr-tile">
+      <span class="rr-lbl">R:R TP2</span>
+      <span class="rr-val" id="elRR2"></span>
+    </div>
+    <div class="rr-tile">
+      <span class="rr-lbl">Risk</span>
+      <span class="rr-risk" id="elRisk"></span>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="conf-wrap">
+      <div class="conf-bar-bg">
+        <div class="conf-bar-fill" id="elConfBar"></div>
+      </div>
+      <span class="conf-text">Confidence <span class="conf-num" id="elConfNum"></span>/100</span>
+    </div>
+    <span class="disclaimer">Not financial advice · ICT/SMC · TRW</span>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// SETUP CONFIGURATION — edit this block for each new signal card
+// ═══════════════════════════════════════════════════════════════════════════════
+const CONFIG = {
+  // ── Identity ────────────────────────────────────────────────────────────────
+  ticker:         'XAGUSD',
+  subtitle:       'Bullish OB retest · OTE 0.618 Confluence Zone',
+  direction:      'BUY',              // 'BUY' or 'SELL'
+  dirBg:          '#173404',          // BUY: '#173404' | SELL: '#3a0f0f'
+  dirText:        '#97c459',          // BUY: '#97c459' | SELL: '#f0997b'
+  sessionLabel:   'Nowy Jork · 15:00 UK',
+  date:           '9 lipca 2026',
+  tfLabel:        'M15',
+
+  // ── Confluence badge (set null to hide) ─────────────────────────────────────
+  confluenceText: 'Confluence Zone · M30 0.618 + M15 Bullish OB + H1 FVG · 57.91–58.32',
+
+  // ── Price levels ────────────────────────────────────────────────────────────
+  priceMin:   57.00,   // chart y-axis bottom — keep below SL with margin
+  priceMax:   62.00,   // chart y-axis top    — keep above TP2 with margin
+  sl:         57.25,
+  entryLow:   57.95,
+  entryHigh:  58.20,
+  tp1:        60.45,
+  tp2:        61.28,
+
+  // ── Risk / R:R ──────────────────────────────────────────────────────────────
+  // Computed automatically from levels above; override by setting strings here.
+  rrTP1:      null,   // null = auto-compute | string = override, e.g. '2.5 : 1'
+  rrTP2:      null,
+  riskLabel:  '0.5% swing',
+
+  // ── Confidence ──────────────────────────────────────────────────────────────
+  confidence: 68,     // 0–100
+
+  // ── Candle path anchors ─────────────────────────────────────────────────────
+  // Shape the price narrative. i=0 = oldest candle (left), i=199 = current (right).
+  // Add anchor points at structural moments: prior high, pullback start, OTE touch,
+  // CHoCH, recovery, current price.
+  anchors: [
+    { i: 0,   p: 59.75 },
+    { i: 20,  p: 59.82 },
+    { i: 55,  p: 59.20 },
+    { i: 100, p: 58.38 },
+    { i: 125, p: 57.96 },
+    { i: 140, p: 58.44 },
+    { i: 165, p: 59.12 },
+    { i: 185, p: 59.50 },
+    { i: 199, p: 59.62 },
+  ],
+
+  // ── CHoCH annotation ────────────────────────────────────────────────────────
+  chochIndex: 140,    // candle index (0–199) to mark; null = hide
+  chochLabel: 'CHoCH',
+};
+// ═══════════════════════════════════════════════════════════════════════════════
+// END OF CONFIG — do not edit below unless changing the template itself
+// ═══════════════════════════════════════════════════════════════════════════════
+
+(function () {
+  const C = CONFIG;
+
+  // ── Populate HTML elements ──────────────────────────────────────────────────
+  document.getElementById('elTicker').textContent    = C.ticker;
+  document.getElementById('elSubtitle').textContent  = C.subtitle;
+  document.getElementById('elSession').innerHTML     = C.sessionLabel + '<br>' + C.date;
+  const badge = document.getElementById('elDirBadge');
+  badge.textContent = C.direction;
+  badge.style.background = C.dirBg;
+  badge.style.color      = C.dirText;
+
+  if (C.confluenceText) {
+    document.getElementById('confluenceWrap').style.display = 'inline-flex';
+    document.getElementById('elConfluence').textContent = C.confluenceText;
+  }
+
+  document.getElementById('elEntry').textContent = C.entryLow + '–' + C.entryHigh;
+  document.getElementById('elSL').textContent    = C.sl.toFixed(2);
+  document.getElementById('elTP1').textContent   = C.tp1.toFixed(2);
+  document.getElementById('elTP2').textContent   = C.tp2.toFixed(2);
+
+  // R:R auto-compute (mid-entry as reference)
+  const entryMid = (C.entryLow + C.entryHigh) / 2;
+  const risk     = entryMid - C.sl;
+  function rr(tp) { return (Math.abs(tp - entryMid) / Math.abs(risk)).toFixed(2) + ' : 1'; }
+  document.getElementById('elRR1').textContent  = C.rrTP1 || rr(C.tp1);
+  document.getElementById('elRR2').textContent  = C.rrTP2 || rr(C.tp2);
+  document.getElementById('elRisk').textContent = C.riskLabel;
+
+  document.getElementById('elConfNum').textContent      = C.confidence;
+  document.getElementById('elConfBar').style.width      = C.confidence + '%';
+
+  // ── Seeded PRNG ─────────────────────────────────────────────────────────────
+  let seed = 1337;
+  function rand() {
+    seed = (seed * 1664525 + 1013904223) & 0xffffffff;
+    return (seed >>> 0) / 4294967295;
+  }
+
+  // ── Generate 200 candles ────────────────────────────────────────────────────
+  function getTarget(i) {
+    const a = C.anchors;
+    for (let j = 0; j < a.length - 1; j++) {
+      if (i >= a[j].i && i <= a[j + 1].i) {
+        const t = (i - a[j].i) / (a[j + 1].i - a[j].i);
+        return a[j].p + t * (a[j + 1].p - a[j].p);
+      }
+    }
+    return a[a.length - 1].p;
+  }
+
+  const N = 200;
+  const candles = [];
+  let price = C.anchors[0].p;
+
+  for (let i = 0; i < N; i++) {
+    const target    = getTarget(i);
+    const pull      = (target - price) * 0.18;
+    const noise     = (rand() - 0.5) * 0.13;
+    const open      = price;
+    const isChoCH   = i === C.chochIndex;
+    let   close     = price + pull + noise;
+    if (isChoCH) close = Math.max(close, open + 0.28);
+
+    const bodyRange = Math.abs(close - open);
+    const high = Math.max(open, close) + rand() * bodyRange * 0.55;
+    const low  = Math.min(open, close) - rand() * bodyRange * 0.40;
+
+    candles.push({ o: open, h: high, l: low, c: close });
+    price = close;
+  }
+
+  // ── Canvas ──────────────────────────────────────────────────────────────────
+  const canvas = document.getElementById('chartCanvas');
+  const ctx    = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  const leftPad  = 14;
+  const rightPad = 112;
+  const topPad   = 28;
+  const botPad   = 24;
+  const chartW   = W - leftPad - rightPad;
+  const chartH   = H - topPad - botPad;
+
+  const pRange = C.priceMax - C.priceMin;
+  function py(p) { return topPad + (C.priceMax - p) / pRange * chartH; }
+
+  const slotW = chartW / N;
+  const bodyW = Math.max(slotW * 0.52, 1.6);
+
+  // Background
+  ctx.fillStyle = '#0d0f10';
+  ctx.fillRect(0, 0, W, H);
+
+  // Horizontal grid (every 0.5 price unit)
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let p = Math.ceil(C.priceMin * 2) / 2; p <= C.priceMax; p += 0.5) {
+    const y = Math.round(py(p)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(leftPad, y); ctx.lineTo(W - rightPad, y); ctx.stroke();
+  }
+
+  // Entry zone
+  const ezTop = py(C.entryHigh);
+  const ezBot = py(C.entryLow);
+  ctx.fillStyle = 'rgba(184,126,10,0.10)';
+  ctx.fillRect(leftPad, ezTop, chartW, ezBot - ezTop);
+  ctx.setLineDash([5, 4]);
+  ctx.strokeStyle = 'rgba(184,126,10,0.55)';
+  ctx.lineWidth = 1.5;
+  [C.entryHigh, C.entryLow].forEach(p => {
+    const y = Math.round(py(p)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(leftPad, y); ctx.lineTo(W - rightPad, y); ctx.stroke();
+  });
+
+  // SL
+  const slY = Math.round(py(C.sl)) + 0.5;
+  ctx.strokeStyle = 'rgba(215,65,65,0.75)';
+  ctx.setLineDash([4, 4]);
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(leftPad, slY); ctx.lineTo(W - rightPad, slY); ctx.stroke();
+
+  // TP1
+  const tp1Y = Math.round(py(C.tp1)) + 0.5;
+  ctx.strokeStyle = 'rgba(99,179,112,0.65)';
+  ctx.setLineDash([6, 5]);
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(leftPad, tp1Y); ctx.lineTo(W - rightPad, tp1Y); ctx.stroke();
+
+  // TP2
+  const tp2Y = Math.round(py(C.tp2)) + 0.5;
+  ctx.strokeStyle = 'rgba(99,179,112,0.35)';
+  ctx.setLineDash([4, 6]);
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(leftPad, tp2Y); ctx.lineTo(W - rightPad, tp2Y); ctx.stroke();
+
+  ctx.setLineDash([]);
+
+  // Candles
+  candles.forEach((c, i) => {
+    const cx    = leftPad + i * slotW + slotW / 2;
+    const isBull = c.c >= c.o;
+    const col   = isBull ? '#3b8a44' : '#b04040';
+
+    ctx.strokeStyle = col;
+    ctx.lineWidth   = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(Math.round(cx) + 0.5, py(c.h));
+    ctx.lineTo(Math.round(cx) + 0.5, py(c.l));
+    ctx.stroke();
+
+    const bTop = py(Math.max(c.o, c.c));
+    const bBot = py(Math.min(c.o, c.c));
+    ctx.fillStyle = col;
+    ctx.fillRect(Math.round(cx - bodyW / 2), bTop, bodyW, Math.max(bBot - bTop, 1));
+  });
+
+  // CHoCH annotation
+  if (C.chochIndex !== null && C.chochIndex >= 0 && C.chochIndex < N) {
+    const ci  = C.chochIndex;
+    const cx0 = leftPad + ci * slotW + slotW / 2;
+    const cy0 = py(candles[ci].h) - 18;
+    ctx.fillStyle = '#63b370';
+    ctx.beginPath();
+    ctx.moveTo(cx0, cy0 + 8);
+    ctx.lineTo(cx0 - 5, cy0 + 17);
+    ctx.lineTo(cx0 + 5, cy0 + 17);
+    ctx.closePath();
+    ctx.fill();
+    ctx.font = 'bold 20px Segoe UI';
+    ctx.textAlign = 'left';
+    ctx.fillText(C.chochLabel, cx0 + 8, cy0 + 17);
+  }
+
+  // Right-side labels
+  const lx = W - rightPad + 10;
+
+  ctx.fillStyle = 'rgba(99,179,112,0.50)'; ctx.font = '18px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText('TP2',            lx, tp2Y + 6);
+  ctx.font = '16px Segoe UI';
+  ctx.fillText(C.tp2.toFixed(2), lx, tp2Y + 23);
+
+  ctx.fillStyle = '#63b370'; ctx.font = '18px Segoe UI';
+  ctx.fillText('TP1',            lx, tp1Y + 6);
+  ctx.fillStyle = 'rgba(99,179,112,0.80)'; ctx.font = '16px Segoe UI';
+  ctx.fillText(C.tp1.toFixed(2), lx, tp1Y + 23);
+
+  const ezMid = (ezTop + ezBot) / 2;
+  ctx.fillStyle = '#b87e0a'; ctx.font = 'bold 18px Segoe UI';
+  ctx.fillText('ENTRY',              lx, ezMid - 6);
+  ctx.font = '15px Segoe UI'; ctx.fillStyle = 'rgba(184,126,10,0.85)';
+  ctx.fillText(C.entryLow.toFixed(2),  lx, ezMid + 11);
+  ctx.fillText(C.entryHigh.toFixed(2), lx, ezMid + 27);
+
+  ctx.fillStyle = '#e05555'; ctx.font = 'bold 18px Segoe UI';
+  ctx.fillText('SL',             lx, slY + 5);
+  ctx.font = '15px Segoe UI'; ctx.fillStyle = 'rgba(220,70,70,0.80)';
+  ctx.fillText(C.sl.toFixed(2),  lx, slY + 22);
+
+  // Watermark
+  ctx.fillStyle = 'rgba(255,255,255,0.14)';
+  ctx.font = '18px Segoe UI'; ctx.textAlign = 'left';
+  ctx.fillText(C.tfLabel + ' · ' + C.ticker + ' · ' + C.date + ' ' + C.sessionLabel,
+               leftPad + 6, topPad + 19);
+
+})();
+</script>
+
+</body>
+</html>

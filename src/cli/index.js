@@ -25,6 +25,12 @@ import './commands/ui.js';
 import './commands/pane.js';
 import './commands/tab.js';
 import './commands/stream.js';
+import './commands/telegram.js';
+import './commands/card.js';
+import './commands/calendar.js';
+import './commands/chart_render.js';
+import './commands/prestart.js';
+import './commands/review.js';
 
 // Run
 import { run } from './router.js';

@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SCREENSHOT_DIR = join(dirname(dirname(__dirname)), 'screenshots');
 
-export async function captureScreenshot({ region, filename, method } = {}) {
+export async function captureScreenshot({ region, filename, method, scale } = {}) {
   mkdirSync(SCREENSHOT_DIR, { recursive: true });
 
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
@@ -43,7 +43,8 @@ export async function captureScreenshot({ region, filename, method } = {}) {
         return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
       })()
     `);
-    if (bounds) clip = { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, scale: 1 };
+    const pixelScale = scale ?? 2;
+    if (bounds) clip = { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, scale: pixelScale };
   } else if (region === 'strategy_tester') {
     const bounds = await evaluate(`
       (function() {
@@ -54,10 +55,11 @@ export async function captureScreenshot({ region, filename, method } = {}) {
         return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
       })()
     `);
-    if (bounds) clip = { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, scale: 1 };
+    const pixelScale = scale ?? 2;
+    if (bounds) clip = { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height, scale: pixelScale };
   }
 
-  const params = { format: 'png' };
+  const params = { format: 'png', captureBeyondViewport: true };
   if (clip) params.clip = clip;
 
   const { data } = await client.Page.captureScreenshot(params);

@@ -1,0 +1,140 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "started_at": "2026-07-06",
+    "start_balance": 10000,
+    "risk_per_trade_pct": 0.5,
+    "note": "Analytical overlay only (ROUTINES_V2.md §16) — illustrates results, never gates signal publication (that stays with the Signal Risk Engine, §9). Starts fresh from 2026-07-06 go-live; does NOT backfill the 82 migrated legacy trade_log.md signals or pre-overlay v2 trades (known duplicate-setup issues would distort the equity curve). counted_trade_ids prevents double-counting a trade across runs. SEEDED 2026-07-06: counted_trade_ids pre-filled with all pre-go-live setup_ids (20 resolved legacy/sig entries + 4 still-active legacy setups) so the sweep-all-uncounted rule never pulls pre-go-live trades into the equity curve — including future resolutions of legacy-071/078/079/081, which were published before go-live and are therefore excluded by the fresh-start decision. Only setups PUBLISHED on/after 2026-07-06 count."
+  },
+  "current_equity": 9992.82,
+  "peak_equity": 10043.03,
+  "day_start_equity": 9992.82,
+  "week_start_equity": 10043.03,
+  "trades_counted": 3,
+  "risk_status": "normal",
+  "counted_trade_ids": [
+    "legacy-027",
+    "legacy-028",
+    "legacy-029",
+    "legacy-030",
+    "legacy-033",
+    "legacy-034",
+    "legacy-036",
+    "legacy-038",
+    "legacy-040",
+    "legacy-041",
+    "legacy-046",
+    "legacy-049",
+    "legacy-050",
+    "legacy-051",
+    "legacy-057",
+    "legacy-064",
+    "legacy-071",
+    "legacy-076",
+    "legacy-078",
+    "legacy-079",
+    "legacy-081",
+    "legacy-082",
+    "sig-083",
+    "sig-084",
+    "sig-085",
+    "sig-086",
+    "sig-087"
+  ],
+  "daily_history": [
+    {
+      "date": "2026-07-06",
+      "start_equity": 10000,
+      "end_equity": 10000,
+      "pnl_usd": 0,
+      "pnl_r": 0,
+      "drawdown_pct": 0,
+      "status": "normal",
+      "note": "3 results_log resolutions today (legacy-078 +1.28R, legacy-081 +1.98R, legacy-079 +0.93R) - all pre-go-live cohort (pre-seeded in counted_trade_ids), correctly excluded per the fresh-start decision. 0 trades counted, 0 P&L. Portfolio remains untouched since go-live (2026-07-06) pending its first post-go-live resolution."
+    },
+    {
+      "date": "2026-07-08",
+      "start_equity": 10000,
+      "end_equity": 10000,
+      "pnl_usd": 0,
+      "pnl_r": 0,
+      "drawdown_pct": 0,
+      "status": "normal",
+      "note": "legacy-071 SL hit 2026-07-07 19:00 UTC (caught in Wed daily-close, 26h delay — Mon/Tue daily-close did not execute). Pre-go-live cohort (pre-seeded in counted_trade_ids) — correctly excluded. 0 portfolio-counted trades. 0 active setups remaining. No 2026-07-07 daily_history entry — that routine never ran."
+    },
+    {
+      "date": "2026-07-09",
+      "start_equity": 10000,
+      "end_equity": 10000,
+      "pnl_usd": 0,
+      "pnl_r": 0,
+      "drawdown_pct": 0,
+      "status": "normal",
+      "note": "0 results_log resolutions today, 0 new setup_ids to count (all 24 logged ids already in counted_trade_ids). 0 active setups all day (XAUUSD breakout thesis never cleared E1's M15 pullback requirement; UKOIL Setup A candidate never reached its pullback zone) so 0 published, 0 triggered open risk. Portfolio unchanged since go-live, still awaiting its first genuine post-go-live resolution."
+    },
+    {
+      "date": "2026-07-10",
+      "start_equity": 10000,
+      "end_equity": 9950,
+      "pnl_usd": -50,
+      "pnl_r": -1.0,
+      "drawdown_pct": 0.5,
+      "status": "normal",
+      "note": "First genuine post-go-live resolution: sig-085 XAUUSD LONG (setup_type A, confidence 86) resolved hit_sl during trw2-ny2 (~17:00 UTC) - entry and SL swept within the same M15 bar on a 3-4x-avg-volume wick, price recovered after but stop triggered first, rr_realized -1.0. pnl_usd = 10000 * 0.005 * -1.0 = -$50. current_equity 10000 -> 9950. Daily drawdown 0.5%, well below the 2% warning threshold. This is the 3rd consecutive loss in the underlying signal series (sig-084, legacy-071 excluded pre-go-live, sig-085) but the model portfolio's own trade count is just 1 (its first)."
+    },
+    {
+      "date": "2026-07-13",
+      "start_equity": 9950,
+      "end_equity": 10043.03,
+      "pnl_usd": 93.03,
+      "pnl_r": 1.87,
+      "drawdown_pct": 0,
+      "status": "normal",
+      "note": "sig-086 SOLUSDT SHORT (setup_type B continuation, published 2026-07-12 weekend, TP1 hit 2026-07-13 during trw2-london) swept into the portfolio this run - first win since sig-085's loss, breaks the 3-loss streak in the underlying signal series. pnl_usd = 9950 * 0.005 * 1.87 = $93.03 (rounded). current_equity 9950 -> 10043.03, first time above the $10,000 starting balance. No weekend-gap trades pulled in beyond sig-086 itself (it was the only uncounted results_log entry). 0 new setups published across all 5 routines today (Asia/London/NY/NY2/close) despite a violent XAUUSD sub-4000 breakdown - correctly withheld, so 0 triggered/pending open risk overnight."
+    },
+    {
+      "date": "2026-07-14",
+      "start_equity": 10043.03,
+      "end_equity": 10043.03,
+      "pnl_usd": 0,
+      "pnl_r": 0,
+      "drawdown_pct": 0,
+      "status": "normal",
+      "note": "0 results_log resolutions today (US CPI day - XAUUSD spiked to 4104.05 on the print then faded >50% back to the 4049-4054 confluence zone, closing ~4052.78). 0 new setup_ids to count. 0 setups published across all 5 routines (Asia/London/NY/NY2/close) - E1 (confirmed M15 CHoCH) never cleared despite the confluence zone being tapped (wick to 4042.885). 0 active setups all day, so 0 triggered/pending open risk overnight. Portfolio unchanged since sig-086's win yesterday."
+    },
+    {
+      "date": "2026-07-15",
+      "start_equity": 10043.03,
+      "end_equity": 9992.82,
+      "pnl_usd": -50.21,
+      "pnl_r": -1.0,
+      "drawdown_pct": 0.5,
+      "status": "normal",
+      "note": "sig-087 XAUUSD SHORT (setup_type B continuation, published trw2-london 08:30 UK) resolved hit_sl the same day (~17:30-17:45 UTC, entry filled and SL hit within the same M15 bar as price swept from below the 4047-4054 zone up to a high of 4066.295). pnl_usd = 10043.03 * 0.005 * -1.0 = -$50.21. current_equity 10043.03 -> 9992.82. Daily drawdown 0.5%, well below the 2% warning threshold. NOTE: this resolution was only discovered and booked during the same extended trw2-london session's own freshness re-check (real wall-clock time had advanced to 2026-07-16 by the time of writing) because the scheduled trw2-newyork/trw2-ny2/trw2-daily-close routines for 2026-07-15 never fired against this repo - see memory/handoff_latest.md for the full anomaly note. No other results_log entries or new setups from the missed routines to sweep in."
+    },
+    {
+      "date": "2026-07-16",
+      "start_equity": 9992.82,
+      "end_equity": 9992.82,
+      "pnl_usd": 0,
+      "pnl_r": 0,
+      "drawdown_pct": 0,
+      "status": "normal",
+      "note": "0 results_log resolutions today (all 27 entries in results_log.jsonl already in counted_trade_ids, including sig-087 whose loss was already booked against 2026-07-15's daily_history in an earlier extended session). 1 new setup published today (sig-088 XAUUSD SHORT, trw2-newyork 15:09 UK) but never triggered -- entry zone 4042.41-4050.74 sat 50-70pts above price for the entire remainder of the session as the day's strong bearish trend carried XAU from ~4060 down to a close of 3976.58 (-2.07% on the day, -2.4% over 5D) without ever retesting the zone. Open risk overnight: 0 triggered, 0 pending-but-imminent (sig-088 remains a distant pending order, not close enough to count as live conditional risk). day_start_equity corrected from a stale 10043.03 (never rolled over after sig-087's loss because 2026-07-15's daily-close never ran) to the true 9992.82 carried in from that loss -- this daily_history entry is the actual first genuine daily-close bookkeeping since sig-087 resolved."
+    }
+  ],
+  "last_updated": "2026-07-16",
+  "weekly_history": [
+    {
+      "week_ending": "2026-07-12",
+      "start_equity": 10000,
+      "end_equity": 9950,
+      "pnl_usd": -50,
+      "pnl_r": -1.0,
+      "max_daily_drawdown_pct": 0.5,
+      "total_drawdown_pct": 0.5,
+      "trades_counted": 1,
+      "note": "Only sig-085 (XAUUSD, rr_realized -1.0) counted this week -- legacy-078/079/081 pre-seeded/excluded pre-go-live, sig-086 still open (not yet resolved). Losing week but drawdown far below the 2% warning threshold; one trade is not enough to judge edge, especially since the loss was a structural/execution-timing failure (violent wick) with the underlying thesis proving directionally correct afterward, not a thesis or scoring failure."
+    }
+  ]
+}

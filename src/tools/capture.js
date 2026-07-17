@@ -7,8 +7,9 @@ export function registerCaptureTools(server) {
     region: z.string().optional().describe('Region to capture: full, chart, strategy_tester (default full)'),
     filename: z.string().optional().describe('Custom filename (without extension)'),
     method: z.string().optional().describe('Capture method: cdp (Page.captureScreenshot) or api (chartWidgetCollection.takeScreenshot) (default cdp)'),
-  }, async ({ region, filename, method }) => {
-    try { return jsonResult(await core.captureScreenshot({ region, filename, method })); }
+    scale: z.number().optional().describe('Pixel scale multiplier for higher resolution: 1, 2 (default), 3. Higher = sharper but larger file.'),
+  }, async ({ region, filename, method, scale }) => {
+    try { return jsonResult(await core.captureScreenshot({ region, filename, method, scale })); }
     catch (err) { return jsonResult({ success: false, error: err.message }, true); }
   });
 }

@@ -1,0 +1,69 @@
+{
+  "_meta": {
+    "schema_version": "2.2",
+    "last_updated": "2026-07-17T14:00:00Z",
+    "note": "sig-088 XAUUSD SHORT published trw2-newyork 2026-07-16 15:09 UK. Setup B continuation, entry 4042.41-4050.74 (LuxAlgo OB, the real untested CHoCH/rollover high -- corrected from an initially-considered 4014-4024 zone that turned out to already be chopped through earlier today). SL 4074 (deliberately widened beyond the session BOS/swing high to address the tight-SL whipsaw lesson from sig-085/sig-087, two consecutive SL hits on <15pt Setup B stops). Not yet triggered at publication -- price was 3989.6, ~53pts below the entry zone. Re-confirmed unchanged by trw2-asia's anomalous 14:40Z check (6th consecutive scheduler timing bug -- see handoff_latest.md) -- max high in the M15 window 14:15-14:40Z was 4004.975, still ~37pts below the entry zone. trw2-ny2 18:00 UK check (real time verified 17:04 UTC/18:04 UK, legit slot): bar-walk M15 14:15-17:00 UTC max high 4032.36, still ~10pts below the entry zone; live 3990.6, no SL/TP touch, no scenario A/C trigger. trw2-daily-close 22:00 UK check (real time verified 21:06 UTC/22:06 UK -- genuine slot, KROK 0 passed): bar-walk M15 17:00-21:05 UTC max high only 3992.99 (~50-58pts below the zone, moving further away as the day's bearish trend extended into the close), min low 3969.345 (still above TP1 3960, no SL/TP touch), no scenario A/C trigger. Entry zone ends the day untouched and farther away than at any earlier check today -- the strong bearish trend day carried price well past the zone without ever retesting it. trw2-asia 2026-07-17 check (KROK 0: Bash date -u read 00:35:48 UTC but the live TV M15 feed's most recent bar was already at ~00:50 UTC -- ~15min clock disagreement between sandbox and TV feed, consistent with the known scheduler/clock-drift pattern; treated TV feed as source of truth, effective check time ~00:50 UTC / ~01:50 UK, still within the Asia 01:30 UK slot, normal drift not a repeat anomaly): bar-walk M15 21:15 UTC(7/16)-00:50 UTC(7/17) max high only 3997.04, still ~45pts below the entry zone lower bound; live 3983.3, no SL/TP touch (irrelevant pre-trigger), no scenario A/C trigger. Entry zone remains untouched, price still consolidating in the high-3970s/high-3990s range well below the zone. trw2-newyork 2026-07-17 check (KROK 0: date -u 14:09:42 UTC = 15:09 UK, 9min past 15:00 UK slot, normal drift, legit run): bar-walk M15 23:15 UTC(7/16)-14:00 UTC(7/17) max high only 4008.795 (03:35 UTC), still ~34pts below the entry zone lower bound; min low 3959.8 (13:00 UTC, brushed just under the TP1 level but irrelevant -- setup never triggered so TP touches don't count), followed by a sharp reversal spike to 4003.745 (13:30 UTC) and settling at live 3997.715 -- no SL/TP touch, no scenario A/C trigger. Entry zone remains untouched after ~23h; price is now oscillating 3960-4009 in a tightening range well below the zone, well into what would already be TP1/TP2 territory had the setup ever triggered.",
+    "scenario_schema": {
+      "trigger_types": ["close_above","close_below","high_above","low_below","zone_reclaim"],
+      "sl_update_direction_rule": "reduce_risk_only: LONG -> new_sl > current_sl AND new_sl < entry_lower; SHORT -> new_sl < current_sl AND new_sl > entry_upper",
+      "screenshot_m15_path_doc": "Path to the §7b M15 standard screenshot. Must be <id>_m15_standard_<ts>.png with companion _meta.json (TF=15, has_entry_box, has_sl_line, has_tp_lines). Written by bar-walk after capture_screenshot. H1 or non-standard screenshots must NOT be stored here -- use null until §7b is run.",
+      "flags_doc": {
+        "applied": "set true once trigger fires -- prevents re-application",
+        "one_shot": "always true -- each scenario fires at most once",
+        "disabled": "set true by mutually_exclusive_with when a sibling fires",
+        "mutually_exclusive_with": "list of scenario keys to disable when this one fires"
+      },
+      "precondition_doc": "optional -- a bar matching precondition type/level must appear BEFORE the main trigger bar (chronological order)"
+    }
+  },
+  "active_setups": [
+    {
+      "id": "sig-088",
+      "instrument": "XAUUSD",
+      "group": "xau",
+      "direction": "SHORT",
+      "setup_type": "B",
+      "status": "published",
+      "entry_lower": 4042.41,
+      "entry_upper": 4050.74,
+      "sl": 4074.00,
+      "tp1": 3960.00,
+      "tp2": 3928.00,
+      "tp3": 3876.00,
+      "confidence": 83,
+      "rr_planned": 3.16,
+      "risk_pct": 0.5,
+      "news_risk": "low",
+      "screenshot_m15_path": "screenshots/xau/sig-088_m15_standard_2026-07-17_1420.png",
+      "created_at": "2026-07-16T14:05:00Z",
+      "published_at": "2026-07-16T14:12:00Z",
+      "last_checked_at": "2026-07-17T14:00:00Z",
+      "fresh_entry": true,
+      "sl_updated": false,
+      "scenarios": {
+        "a": {
+          "label": "H1 close back above 4050.74 (entry zone reclaim to the upside) confirms rejection failed -- structural milestone, tighten SL toward breakeven/reduce risk",
+          "probability_pct": 20,
+          "trigger": { "type": "close_above", "level": 4050.74, "timeframe": "H1" },
+          "sl_update": { "type": "absolute", "value": 4058.00, "direction": "reduce_risk_only" },
+          "tp_updates": null,
+          "flags": { "applied": false, "one_shot": true, "disabled": false, "mutually_exclusive_with": ["b"] }
+        },
+        "b": {
+          "label": "observational -- entry fills and continues lower toward TP1/TP2 as planned, no automatic action",
+          "trigger": null,
+          "flags": { "applied": false, "one_shot": true, "disabled": false, "mutually_exclusive_with": ["a"] }
+        },
+        "c": {
+          "label": "H1 close above 4074 (SL level) -- bearish continuation thesis fully invalidated, flag for manual review",
+          "trigger": { "type": "close_above", "level": 4074.00, "timeframe": "H1" },
+          "flags": {
+            "applied": false, "one_shot": true, "disabled": false,
+            "action_on_trigger": "flag_for_manual_review",
+            "action_note": "sig-088 invalidated: H1 closed back above 4074 (the SL/session-BOS level) -- the day's entire bearish reversal-from-4074 thesis is broken, not just this one entry. Re-assess bias from scratch at next routine."
+          }
+        }
+      }
+    }
+  ]
+}
