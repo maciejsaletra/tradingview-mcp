@@ -23,7 +23,7 @@ export const TELEGRAM_TOPIC_THREADS = {
   krypto: process.env.TELEGRAM_THREAD_KRYPTO || '',
   wyniki: process.env.TELEGRAM_THREAD_WYNIKI || '',
   plan: process.env.TELEGRAM_SIGNAL_THREAD_ID || '',
-  // Swing signals (strategy_type/lifecycle = "swing") go to the dedicated SWING topic,
-  // never to the instrument topics used by TOP3/XAU day-trading signals (rule 2026-07-18).
-  swing: process.env.TELEGRAM_THREAD_SWING || '7',
+  // Swing signals (strategy_type/lifecycle = "swing") go to the dedicated "SWINGI H4/D1" topic
+  // (thread 9), never to the instrument topics used by TOP3/XAU day-trading signals (rule 2026-07-18).
+  swing: process.env.TELEGRAM_THREAD_SWING || '9',
 };
