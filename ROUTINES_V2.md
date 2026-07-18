@@ -50,8 +50,10 @@
 
 **TRW_CRYPTO** (weekend only): BTCUSDT, ETHUSDT, XRPUSDT, SOLUSDT, DOGEUSDT.
 
-Telegram topic routing (unchanged from existing `.env`/`config.js` mapping):
+Telegram topic routing (`.env`/`config.js` mapping):
 XAUUSD→`xau` · EURUSD/USDJPY/XAGUSD→`waluty` · SP500/DJ30/NAS100/GER40/JP225/UK100/UKOIL→`indeksy` · BTCUSDT/ETHUSDT/XRPUSDT/SOLUSDT/DOGEUSDT→`krypto`.
+
+**Routing per typ setupu (2026-07-18):** powyższa mapa instrumentów dotyczy WYŁĄCZNIE setupów day trading (TOP 3/XAU intraday) i scalpów. **Każdy setup z `lifecycle: "swing"` (§7c/§7d) idzie WYŁĄCZNIE do tematu `swing`** (`message_thread_id: 7`, chat `-1003969670552`, `.env: TELEGRAM_THREAD_SWING=7`) — nigdy do tematu instrumentu. Przed każdą wysyłką sprawdź lifecycle setupu: swing → `--topic swing`; intraday/scalp → temat instrumentu z mapy.
 
 **Daily/weekly summary routing rule (strict):** any daily-close output (`trw2-daily-close`) and any weekly-review output (`trw2-weekly-review`'s Duty B) — the EOD/weekly card, and any text recap, preview, or narrative about how the day/week went — always goes to `wyniki` (**WYNIKI/STATYSTYKI** topic), never to `krypto`/`xau`/`waluty`/`indeksy`. This applies even during the Sunday weekly-review run, which also does a crypto deep-analysis duty (Duty A) — Duty A's Telegram send to `krypto` is allowed ONLY for genuinely new tradeable setups (with entry/SL/TP), never for a "weekly preview" summary/outlook text. If Duty A has no new setup to publish, it sends nothing to `krypto` that run — the week/day narrative belongs exclusively in the `wyniki`-routed card.
 
@@ -244,7 +246,7 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
       4. **SWING** (jeśli cokolwiek trafiło do §7d lub §7c) — instrument, kierunek, trigger, lifecycle.
       5. **FRESHNESS STATUS** — podsumowanie: ile setupów przeszło Check 1 / ile opublikowanych po Check 2.
     b. Carry-over **PLAN [SESJA] graphic cards** for ALL active setups — primary instrument included (`context/carryover_card_template.html`) — one card per active setup, each to its instrument topic. Card name: **PLAN ASIA / PLAN LONDYN / PLAN NEW YORK** (auto-detected from UTC time: 00–07/08–12/13–21). Time displayed as London time (BST/GMT). Mandatory pipeline per §7 krok 2 (updated 2026-07-07): (1) bar-walk M5/M15 → SL/TP touch check → scenario engine → (2) `chart_set_timeframe("15")` → Alt+R Auto-fit → `draw_shape` yellow ENTRY box + SL (red) + TP1/TP2 (green) → verify levels in frame → `capture_screenshot region=chart` → (3) rename to `<id>_m15_standard_<YYYY-MM-DD>_<HHMM>.png`, write companion `_meta.json` (timeframe="15", has_entry_box, has_sl_line, has_tp_lines, auto_fit=true) → (4) update `active_setups.json screenshot_m15_path` → (5) `tv card fill-carryover --id <id> --datetime "YYYY-MM-DD HH:MM UTC" [--m5-status taken|waiting|invalidated] ...` → PNG → Telegram. Card has M5 scalp section auto-generated from setup, confidence chip (≥75% green / 65–74% gold / <65% gray), logo from `assets/trw_logo.jpg`. H1 screenshot = BUG — card shows placeholder + red banner instead of embedding it. Text-only carry-over messages retired; full text status goes to journal.
-    c. New signal cards (commercial template, `context/commercial_card_template.html`) for setups that cleared the risk engine — each to its instrument topic. **Card generation canon v2 (2026-07-09):** before generating any new signal card, read `context/card_generation_prompt_v2.md` — it defines the mandatory card structure: MAPA PŁYNNOŚCI → 🔄 PULLBACK/OTE (M15 impulse, 0.618–0.786, rozszerzone 0.5 przy wysokim wolumenie) → 🔁 PULLBACK MOŻLIWY (mandatory, at end) → PLAN SESYJNY (UK time, Azja 00-07/Londyn 08-12/NY 13-21) → SCENARIUSZE → FIBONACCI/POZIOMY. Key rules: D1/H4 = tło/background only (never block entry); Confluence Zone module (≥2 TF overlap → flag explicite); HTF POI module (D1/H4 FVG/OB between price and TP → informational list); M5 trigger override allowed for confluence zone or high volatility (not just lifecycle:"scalp"); all output times in Europe/London.
+    c. New signal cards (commercial template, `context/commercial_card_template.html`) for setups that cleared the risk engine — each to its instrument topic, **EXCEPT lifecycle:"swing" → always `--topic swing` (thread 7), never the instrument topic (routing rule §3, 2026-07-18)**. **Card generation canon v2 (2026-07-09):** before generating any new signal card, read `context/card_generation_prompt_v2.md` — it defines the mandatory card structure: MAPA PŁYNNOŚCI → 🔄 PULLBACK/OTE (M15 impulse, 0.618–0.786, rozszerzone 0.5 przy wysokim wolumenie) → 🔁 PULLBACK MOŻLIWY (mandatory, at end) → PLAN SESYJNY (UK time, Azja 00-07/Londyn 08-12/NY 13-21) → SCENARIUSZE → FIBONACCI/POZIOMY. Key rules: D1/H4 = tło/background only (never block entry); Confluence Zone module (≥2 TF overlap → flag explicite); HTF POI module (D1/H4 FVG/OB between price and TP → informational list); M5 trigger override allowed for confluence zone or high volatility (not just lifecycle:"scalp"); all output times in Europe/London.
 15. Append new outcomes to `journal/results_log.jsonl` if any setups resolved this run.
 16. Update `journal/daily_journal.md` (daily close) or `journal/weekly_review.md` (Sunday).
 17. Write `memory/handoff_latest.md` for the next run.
@@ -529,7 +531,7 @@ FOR each setup in active_setups:
 6. Lifecycle: `"swing"`.
 
 ### Routing
-- Telegram: temat **`xau`** z tagiem `⚡ SWING RSI-H4` w tytule karty.
+- Telegram: temat **`swing`** (`message_thread_id: 7`, chat `-1003969670552`) z tagiem `⚡ SWING RSI-H4` w tytule karty — **NIGDY do `xau` ani innego tematu instrumentu (zmiana 2026-07-18)**. CLI: `--topic swing`.
 - Lifecycle: `"swing"` w signals_log.jsonl i active_setups.json.
 - Swing RSI-H4 nie wlicza się do intraday XAU cap (max 2) — osobna pula swing.
 - Żaden inny instrument nie ma tego triggera. RSI H4 <25 na innych instrumentach = +5 pts confidence bonus w Metodzie 1, nie samodzielny sygnał.
@@ -558,10 +560,10 @@ Sprawdzane po analizie TOP 3 każdej rutyny (krok 9 sekwencji §7), dla wszystki
 **H1 sanity check (krok informacyjny, NIE warunek — 2026-07-18, §4 wiersz Swing):** tuż przed publikacją swinga sprawdź H1: czy lokalna struktura (ostatni BOS/CHoCH H1, momentum) nie przeczy biasowi D1/H4. Jeśli przeczy → dopisz ostrzeżenie do `reason_short` i handoff (np. "H1 pokazuje lokalne wyczerpanie przeciwne do bias D1/H4 — rozważ opóźnienie wejścia") i publikuj mimo to. H1 NIE jest gate'em, NIE jest triggerem, NIE daje malusa confidence — wyłącznie potwierdza lub ostrzega.
 
 ### Routing
-- Telegram: temat właściwy dla instrumentu (wg §3 mapping) + tag `📈 SWING` lub `📉 SWING` w tytule.
+- Telegram: **WYŁĄCZNIE temat `swing`** (`message_thread_id: 7`, chat `-1003969670552`) + tag `📈 SWING` lub `📉 SWING` w tytule — **NIGDY do tematów instrumentów TOP3/XAU (`xau`/`waluty`/`indeksy`/`krypto`) — zmiana 2026-07-18**. CLI: `--topic swing`.
 - Lifecycle: `"swing"` w signals_log.jsonl i active_setups.json.
 - Swing NIE wlicza się do cap TOP 3 intraday (§9) — osobny strumień.
-- Swing XAU: temat `xau`. Swing non-XAU: temat właściwy per §3.
+- Dotyczy każdego instrumentu: swing XAU i swing non-XAU idą do tego samego tematu `swing`.
 
 ### Carry-over swing
 - Swing może być przenoszony przez kilka sesji.
