@@ -20,6 +20,7 @@ D1 i H4 są **KATEGORYCZNIE ZAKAZANE** w logice i na kartach day tradingu (TOP 3
 - D1/H4 (BOS/CHoCH D1, harmoniczne H4/D1, RSI H4 <25) należą wyłącznie do kart SWING (ROUTINES_V2 §4 wiersz Swing, §7c, §7d) — tam D1 = bias główny, H4 = struktura+trigger, H1 = wyłącznie sanity check.
 - Nagłówek karty: **MTF H1/M15**.
 - Brak setupów na H1/M15/M5 rozwiązuje degradacja confidence 60→50→40→30 (gwarancja 3+1), NIGDY rozszerzenie ramy czasowej.
+- **Crypto weekend (2026-07-18):** identyczny zakaz D1/H4 i identyczna dyscyplina H1/M15/M5 jak day trading. Gwarancja weekendowa: **BTC = zawsze 1 setup na sesję** (ta sama drabinka degradacji); watchlista crypto = max 2 dodatkowe BEZ dolnego limitu (cisza dozwolona). Gwarancja 3+1 NIE dotyczy weekendu — na karcie sesji weekendowej nie ma sekcji TOP 3/XAU, jest BTC (wymagany) + watchlista crypto (0–2 wiersze). Zakaz narracji D1 na kartach crypto (np. "D1 +X% 10D").
 
 ---
 

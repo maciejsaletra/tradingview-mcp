@@ -16,7 +16,7 @@
 6. Daily and weekly summaries are mandatory (weekday 22:00 close, Sunday 20:00 weekly).
 7. Never rebuild infrastructure that already exists — MCP/CLI/Telegram/logo/card template/strategy are source of truth in `PROJECT_CONTEXT.md` and `context/*.md` pointers.
 8. Any setup still active/carried over from a prior session must be re-checked and its current status reported every run — see §7 step 2. Don't let an open position go quiet just because it isn't new.
-9. **(superseded 2026-07-18 by the 3+1 guarantee, §7 krok 8c Krok 5)** The session ALWAYS returns exactly 3 TOP 3 setups + 1 XAU setup, using the confidence-degradation ladder (60→50→40→30) when needed. "Silence" is no longer an acceptable output for the guaranteed slots — low quality is disclosed via the explicit guarantee label, never via a missing row.
+9. **(superseded 2026-07-18 by the 3+1 guarantee, §7 krok 8c Krok 5)** The session ALWAYS returns exactly 3 TOP 3 setups + 1 XAU setup, using the confidence-degradation ladder (60→50→40→30) when needed. "Silence" is no longer an acceptable output for the guaranteed slots — low quality is disclosed via the explicit guarantee label, never via a missing row. **Rozgraniczenie (2026-07-18): gwarancja 3+1 dotyczy WYŁĄCZNIE day tradingu Mon–Fri (TOP 3 + XAU). Crypto weekend ma odrębną gwarancję: BTC = zawsze dokładnie 1 setup na każdej sesji weekendowej (ta sama drabinka degradacji), watchlista crypto = max 2 dodatkowe setupy BEZ dolnego limitu (cisza przy braku jakości akceptowalna — thin weekend liquidity) — patrz §9.**
 10. A worse-but-safe stat is better than an inflated one. Confidence is a checklist score, not a vibe.
 
 ---
@@ -50,6 +50,12 @@
 
 **TRW_CRYPTO** (weekend only): BTCUSDT, ETHUSDT, XRPUSDT, SOLUSDT, DOGEUSDT.
 
+**Zasady crypto weekend (2026-07-18):**
+- **TF:** wyłącznie H1/M15/M5 (§4 wiersz Crypto weekend) — D1/H4 kategorycznie zakazane, także jako narracja.
+- **Gwarancja:** BTC = zawsze dokładnie 1 setup każda sesja weekendowa (degradacja confidence 60→50→40→30 na H1/M15/M5, zakaz D1/H4 do wypełnienia gwarancji); pozostała watchlista = max 2 dodatkowe setupy bez dolnego limitu (§9).
+- **Krok 0 (crypto) — watchlist refresh:** przy starcie KAŻDEJ rutyny weekendowej odczytaj tę sekcję (§3 TRW_CRYPTO) na nowo z pliku — nigdy z pamięci/handoffu poprzedniej sesji. Nowe pary dodane między sesjami obowiązują od najbliższej rutyny. Jeśli lista zmieniła się względem poprzedniej sesji (dodane/usunięte pary) → zaloguj różnicę w handoff.
+- **Expiry:** wyjątek weekendowy w §9a (poniedziałek 22:00 UK, max ~44h).
+
 Telegram topic routing (`.env`/`config.js` mapping):
 XAUUSD→`xau` · EURUSD/USDJPY/XAGUSD→`waluty` · SP500/DJ30/NAS100/GER40/JP225/UK100/UKOIL→`indeksy` · BTCUSDT/ETHUSDT/XRPUSDT/SOLUSDT/DOGEUSDT→`krypto`.
 
@@ -69,6 +75,7 @@ XAUUSD→`xau` · EURUSD/USDJPY/XAGUSD→`waluty` · SP500/DJ30/NAS100/GER40/JP2
 | Strumień | Bias/kontekst | Impuls/OTE | Trigger wejścia | Uwagi |
 |---|---|---|---|---|
 | **Day trading** (XAU + TOP3) | H1 (lub M30 fallback gdy H1 bez jasnych kotwic) | **M15** — swing M15, Fibo 0.618–0.786 (rozszerzone 0.5 przy wysokim wolumenie) | **M5** — BOS M5 / CHoCH M15 / engulfing | OTE liczone z M15, nie M30 |
+| **Crypto weekend** (BTC + TRW_CRYPTO, 2026-07-18) | **H1** (M30 fallback jak wyżej) | **M15** — identycznie jak day trading | **M5** — identycznie jak day trading | **D1/H4 KATEGORYCZNIE ZAKAZANE** — nie jako tło, nie jako kontekst narracyjny (zakaz obejmuje sformułowania typu "D1 +5.6% 10D"). Identyczna dyscyplina TF jak TOP3/XAU. Ewentualny przyszły strumień crypto-swing działałby pod regułami wiersza Swing (D1/H4/H1 sanity) w OSOBNYM temacie, nie w rutynie weekendowej. |
 | **Swing** (routing §7d + RSI §7c) | **D1** — bias główny | **H4** — struktura i trigger (BOS/CHoCH, harmoniczne patterny, RSI H4 <25 jako sygnał kupna); zamknięcie świecy H4 jako potwierdzenie | **H4** (trigger) + **H1 = WYŁĄCZNIE sanity check (2026-07-18)** | H1 służy tylko do lokalnej weryfikacji tuż przed wejściem, czy cena na niższej ramie nie przeczy biasowi D1/H4. H1 NIE jest gate'em i NIE jest triggerem — nie generuje samodzielnie sygnału swing, tylko potwierdza lub ostrzega. Przykład ostrzeżenia: "H1 pokazuje lokalne wyczerpanie przeciwne do bias D1/H4 — rozważ opóźnienie wejścia" — ale NIE blokuje setupu (adnotacja w reason_short/handoff, nie veto, żadnego malusa confidence). RSI liczony na H4. |
 
 Use `ICT HTF Candles (fadi) [CD80WN]` to read D1/4H overlay without a full timeframe switch, then confirm with an explicit `chart_set_timeframe` pass (per existing `PROJECT_CONTEXT.md` note).
@@ -609,7 +616,9 @@ Every published setup needs a `reason_short` with the 2-4 factors that drove the
 - **XAU (XAUUSD) — intraday stream:** max 2 aktywne. Osobny strumień — nie wlicza się do TOP 3 cap poniżej.
 - **XAU RSI H4 swing (§7c) + swing (§7d):** max 1 aktywny swing per instrument. Swing nie wlicza się do intraday cap.
 - **TRW TOP 3 (watchlista bez złota):** maks 3 intraday setups per routine. Swing (§7d) na non-XAU instrumentach to osobna pula — nie wchodzi do limitu 3.
-- **Weekend crypto:** max 2 key setups per routine.
+- **Weekend crypto (2026-07-18 — zastępuje "max 2 key setups" bez dolnego limitu):**
+  - **BTCUSDT: ZAWSZE dokładnie 1 setup na każdej sesji weekendowej** (Sat 02:30 / 14:00 / 20:00, Sun 02:30 / 14:00 / 20:00) — analogicznie do gwarancji XAU w dni robocze. Mechanizm degradacji confidence 60→50→40→30 wyłącznie na H1/M15/M5, identyczny jak §7 krok 8c Krok 5a-b; przy braku struktury nawet na 30 → najbliższy swing H1 z etykietą `Niska jakość — gwarancja sesyjna (confidence: X)`. Zakaz sięgania po D1/H4 (§4 wiersz Crypto weekend).
+  - **Watchlista crypto poza BTC (ETH/XRP/SOL/DOGE): max 2 dodatkowe setupy per routine, BEZ wymuszonej gwarancji** — cisza przy braku jakości pozostaje akceptowalna (thin weekend liquidity).
 If more candidates qualify, keep only the highest quality/clarity-to-risk ones.
 
 **Position sizing (updated 2026-07-17 — uniform risk across all streams):**
@@ -669,6 +678,7 @@ Każdy setup ze statusem PENDING (TOP 3, XAU, day trading — opublikowany, nie 
 | Day trading (TOP 3 / XAU intraday) | **1 dzień handlowy** — do daily close (22:00 UK) dnia publikacji |
 | Scalp | koniec okna scalp (`session_close_by`, §7 krok 6.5 — bez zmian, ostrzejsze) |
 | Swing (§7c/§7d) | **3 dni handlowe** — zgodnie z naturą ramy D1/H4 |
+| **Crypto weekend (2026-07-18)** | Setupy opublikowane w sobotę/niedzielę wygasają **w poniedziałek o 22:00 UK** (najbliższa rutyna `trw2-daily-close`), max ~44h okna — brak kotwicy "daily close" w weekend. Dodatkowo: przy starcie każdej rutyny weekendowej sprawdź PENDING **starsze niż poprzedni weekend (>1 tydzień)** → `expired` natychmiast, niezależnie od poniedziałkowej kotwicy. |
 
 **Retroaktywne czyszczenie (jednorazowe przy wdrożeniu 2026-07-18):** przeskanuj `memory/active_setups.json`, wszystkie PENDING starsze niż 1 dzień handlowy (poza Swing) → `expired` z powodem `"expired — reguła wprowadzona retroaktywnie 2026-07-18, setup przekroczył limit 1 dnia"`. (Dowód potrzeby: sig-088, Setup B H1, opublikowany 2026-07-16 15:09, wisiał PENDING 2+ dni / 5+ sesji — wygaszony tym czyszczeniem.)
 
