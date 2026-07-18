@@ -67,7 +67,7 @@ XAUUSD→`xau` · EURUSD/USDJPY/XAGUSD→`waluty` · SP500/DJ30/NAS100/GER40/JP2
 | Strumień | Bias/kontekst | Impuls/OTE | Trigger wejścia | Uwagi |
 |---|---|---|---|---|
 | **Day trading** (XAU + TOP3) | H1 (lub M30 fallback gdy H1 bez jasnych kotwic) | **M15** — swing M15, Fibo 0.618–0.786 (rozszerzone 0.5 przy wysokim wolumenie) | **M5** — BOS M5 / CHoCH M15 / engulfing | OTE liczone z M15, nie M30 |
-| **Swing** (routing §7d + RSI §7c) | **D1** — bias główny | **H4** — struktura i trigger (BOS/CHoCH, harmoniczne patterny, RSI H4 <25 jako sygnał kupna); zamknięcie świecy H4 jako potwierdzenie | **H4** (trigger) + **H1 = WYŁĄCZNIE sanity check (2026-07-18)** | H1 służy tylko do lokalnej weryfikacji tuż przed wejściem, czy cena na niższej ramie nie przeczy biasowi D1/H4. H1 NIE jest gate'em i NIE jest triggerem — nie generuje samodzielnie sygnału swing, tylko potwierdza lub ostrzega (ostrzeżenie = adnotacja w reason_short/handoff, nie veto). RSI liczony na H4. |
+| **Swing** (routing §7d + RSI §7c) | **D1** — bias główny | **H4** — struktura i trigger (BOS/CHoCH, harmoniczne patterny, RSI H4 <25 jako sygnał kupna); zamknięcie świecy H4 jako potwierdzenie | **H4** (trigger) + **H1 = WYŁĄCZNIE sanity check (2026-07-18)** | H1 służy tylko do lokalnej weryfikacji tuż przed wejściem, czy cena na niższej ramie nie przeczy biasowi D1/H4. H1 NIE jest gate'em i NIE jest triggerem — nie generuje samodzielnie sygnału swing, tylko potwierdza lub ostrzega. Przykład ostrzeżenia: "H1 pokazuje lokalne wyczerpanie przeciwne do bias D1/H4 — rozważ opóźnienie wejścia" — ale NIE blokuje setupu (adnotacja w reason_short/handoff, nie veto, żadnego malusa confidence). RSI liczony na H4. |
 
 Use `ICT HTF Candles (fadi) [CD80WN]` to read D1/4H overlay without a full timeframe switch, then confirm with an explicit `chart_set_timeframe` pass (per existing `PROJECT_CONTEXT.md` note).
 
@@ -554,6 +554,8 @@ Sprawdzane po analizie TOP 3 każdej rutyny (krok 9 sekwencji §7), dla wszystki
 - NO-ENTRY window (§6.2) clearance.
 - RR ≥ 1.5 do TP1 (od current price lub OTE entry, nie wstecznie).
 - Freshness Check 1 + Check 2 (§10) — entry box musi być przed aktualną ceną przy generowaniu i przed publikacją.
+
+**H1 sanity check (krok informacyjny, NIE warunek — 2026-07-18, §4 wiersz Swing):** tuż przed publikacją swinga sprawdź H1: czy lokalna struktura (ostatni BOS/CHoCH H1, momentum) nie przeczy biasowi D1/H4. Jeśli przeczy → dopisz ostrzeżenie do `reason_short` i handoff (np. "H1 pokazuje lokalne wyczerpanie przeciwne do bias D1/H4 — rozważ opóźnienie wejścia") i publikuj mimo to. H1 NIE jest gate'em, NIE jest triggerem, NIE daje malusa confidence — wyłącznie potwierdza lub ostrzega.
 
 ### Routing
 - Telegram: temat właściwy dla instrumentu (wg §3 mapping) + tag `📈 SWING` lub `📉 SWING` w tytule.
