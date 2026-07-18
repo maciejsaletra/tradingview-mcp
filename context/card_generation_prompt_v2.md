@@ -33,11 +33,12 @@ D1 i H4 są odczytywane wyłącznie jako szeroki background/narracja i **MAJĄ Z
 
 **Typ B — continuation (2026-07-17):** H1 CHoCH w kierunku biasu potwierdzony przed publikacją. **Obowiązkowy szablon opisu:** "Continuation pullback po CHoCH H1 z [X]% retracement, momentum [rosnące/słabnące]." D1/H4 alignment nie jest wymagany i nie daje malusa — brak D1/H4 alignmentu = brak wzmianki, nie "background conflict". **Filtr wyczerpania trendu:** jeśli odległość ceny od swing origin >3×ATR(H1,14) → oznacz "⚠ WYCZERPANIE TRENDU: ruch >3×ATR od origin" na karcie + wymagaj RSI H1 divergence jako potwierdzenia; próg publikacji wzrasta do 70 tylko dla tego setupu.
 
-**TOP 3 hierarchy label (2026-07-17):** każdy setup TOP 3 musi mieć etykietę widoczną na karcie sesji (nie na karcie sygnału):
+**TOP 3 hierarchy label + GWARANCJA 3+1 (2026-07-18):** karta sesji ZAWSZE zawiera dokładnie 3 wiersze TOP 3 + 1 wiersz XAU z kompletnymi Entry/SL/TP1 — zero pustych pól, zero "brak setupu", zero "niekompletne". Gdy Kroki 1–4 hierarchii nie dają wymaganej liczby → degradacja confidence 60→50→40→30 wyłącznie na H1/M15/M5 (nigdy D1/H4 do wypełnienia liczby); przy braku struktury nawet na 30 → najbliższy dostępny swing H1. Etykiety:
 - `standardowy H1 (conf ≥60)` — pełna H1 struktura
-- `gwarancja sesyjna (conf <60)` — H1 struktura, obniżony confidence
+- `gwarancja sesyjna (confidence: X)` — degradacja progu, jawna wartość
 - `rozszerzona rama H4 (H1 nie dał wyniku)` — bias H4, wejście M15/M5
 - `rozszerzona rama D1 (H4 nie dał wyniku)` — bias D1, wejście M15/M5
+- `Niska jakość — publikacja z tytułu gwarancji sesyjnej (confidence: X)` — Krok 5b, ostatnia struktura
 - Kombinacje: np. `rozszerzona rama H4, gwarancja sesyjna`
 
 **Scalp (Strategia C) — tylko w oknie sesji (08:30–09:30 / 14:25–15:15 UK):**
@@ -189,3 +190,10 @@ TRADING ROOM WORKSHOP
 | NIKKEI symbol | CAPITALCOM:JP225 | JP225 |
 | Watchlist verify | Ad hoc | EOD piątek: quote_get wszystkich instrumentów |
 | Główna rama OTE (day trading) | M30 impulse (H1 fallback) | **M15 impulse (H1 fallback), M30 nie jest już częścią OTE-chain** — ujednolicone z ROUTINES_V2 §4 (ten plik miał nieaktualne M30 do 2026-07-17, korekta po tym jak trw2-ny2 18:00 policzył OTE z M30 wbrew już obowiązującej zasadzie) |
+
+### Zmiany 2026-07-18
+| Aspekt | Przed | Po |
+|--------|-------|----|
+| Liczba setupów na sesję | "publikuj tyle, ile jest" (Krok 5 niekompletne) | **GWARANCJA 3+1: zawsze dokładnie 3 TOP 3 + 1 XAU**, degradacja confidence 60→50→40→30 (H1/M15/M5 only), Krok 5b: ostatnia struktura H1 z etykietą "Niska jakość" |
+| Blok E4 "Low confidence <60" | Bezwzględny | Nie dotyczy slotów gwarancji (pozostałe hard-blocks bez zmian) |
+| Karta sesji TOP 3/XAU | Mogła mieć <3 wiersze / "brak setupu XAU" | Zawsze 3+1 wierszy z kompletnymi Entry/SL/TP1 |

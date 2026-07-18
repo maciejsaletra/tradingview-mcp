@@ -16,7 +16,7 @@
 6. Daily and weekly summaries are mandatory (weekday 22:00 close, Sunday 20:00 weekly).
 7. Never rebuild infrastructure that already exists — MCP/CLI/Telegram/logo/card template/strategy are source of truth in `PROJECT_CONTEXT.md` and `context/*.md` pointers.
 8. Any setup still active/carried over from a prior session must be re-checked and its current status reported every run — see §7 step 2. Don't let an open position go quiet just because it isn't new.
-9. No forced setups. Silence (on new setups) is an acceptable, correct output.
+9. **(superseded 2026-07-18 by the 3+1 guarantee, §7 krok 8c Krok 5)** The session ALWAYS returns exactly 3 TOP 3 setups + 1 XAU setup, using the confidence-degradation ladder (60→50→40→30) when needed. "Silence" is no longer an acceptable output for the guaranteed slots — low quality is disclosed via the explicit guarantee label, never via a missing row.
 10. A worse-but-safe stat is better than an inflated one. Confidence is a checklist score, not a vibe.
 
 ---
@@ -195,9 +195,10 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
    b. Metoda 1: formalny confidence §8 + OTE (0.618–0.786, lub 0.5 przy wysokim wolumenie §7b E3).
    c. Metoda 2: confluence multi-element — `data_get_pine_boxes` (liquidity zones), `data_get_ohlcv` summary, Fib levels (0.618 entry / 1.272 TP1 / 1.618 TP2), DXY correlation (from Krok 0), BOS/CHoCH direction.
    d. Freshness Check 1 przy generowaniu (§10): entry box musi być PRZED aktualną ceną, nie „w trakcie", nie wsteczny.
-   e. Wynik XAU:
+   e. Wynik XAU — **GWARANCJA 1 SETUP KAŻDA SESJA (2026-07-18):**
       - Jeśli setup świeży + confidence ≥60 + poza oknem NO-ENTRY → kandydat XAU → temat `xau`.
-      - Jeśli brak świeżego setupu (no-entry, stale, lub w NO-ENTRY window): zapisz explicite w handoff: **"BRAK ŚWIEŻEGO SETUPU XAU W TEJ SESJI — [uzasadnienie]"** i nie wymuszaj.
+      - Jeśli brak setupu ≥60 → zastosuj degradację confidence 60→50→40→30 (mechanizm identyczny jak §7 krok 8c Krok 5a-b), wyłącznie na H1/M15/M5. Przy braku struktury nawet na 30 → najbliższy dostępny swing H1 z etykietą `Niska jakość — publikacja z tytułu gwarancji sesyjnej (confidence: [wartość])`. XAU zawsze ma dokładnie 1 setup z kompletnymi Entry/SL/TP1 na karcie sesji.
+      - Jedyny przypadek odroczenia: aktywne okno NO-ENTRY w momencie publikacji → opublikuj setup natychmiast po końcu okna (w tej samej sesji), z adnotacją czasu.
    f. XAU nie wlicza się do puli TOP 3 (§9 cap).
    g. Sprawdź RSI H4 XAUUSD (§7c) — osobny trigger swing, niezależny od powyższego setupu intraday.
 8. **TOP 3 WATCHLIST (bez złota):**
@@ -219,7 +220,15 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
       - **Strategia C (scalp) NIE podlega temu fallbackowi** — scalp zachowuje sztywny zakres M15/M5/M3/opcjonalnie M30; D1/H4/H1 nie są sprawdzane w module scalp zgodnie z §7b E7.
       - Etykieta: `TOP 3 — rozszerzona rama [H4/D1] (H1 nie dał wyniku)`. Jeśli jednocześnie confidence <60: `TOP 3 — rozszerzona rama [H4/D1], gwarancja sesyjna`.
 
-      **Krok 5 — Niekompletne:** jeśli po wszystkich powyższych krokach wciąż <3 setupów → publikuj tyle, ile jest, i zapisz explicite w karcie sesji i handoff: `TOP 3 NIEKOMPLETNE — brak setupu nawet po rozszerzeniu ramy na [H4/D1], na [N] instrumentach z watchlisty w tej sesji. Powód: [np. range na całej watchliście, brak M5 triggera, wszystkie NO-ENTRY]`.
+      **Krok 5 — GWARANCJA 3+1 Z DEGRADACJĄ CONFIDENCE (zastępuje "publikuj tyle ile jest", 2026-07-18 — bez wyjątków):**
+
+      TOP 3 = ZAWSZE dokładnie 3 setupy każda sesja. XAU = ZAWSZE dokładnie 1 setup każda sesja (§7 krok 7e). Próg confidence 60 pozostaje standardem jakości, ale NIE może być powodem zwrócenia mniej niż wymagana liczba setupów.
+
+      - **Krok 5a — degradacja progu:** jeśli po Krokach 1–4 liczba setupów < wymagana → NIE zatrzymuj się. Obniżaj próg confidence stopniowo: **60 → 50 → 40 → 30**, skanując wyłącznie **H1/M15/M5** (bez D1/H4), aż znajdziesz brakującą liczbę setupów z policzalnym Entry/SL/TP.
+      - **Krok 5b — ostatnia struktura:** jeśli nawet przy confidence 30 brak strefy OB/FVG lub swinga do OTE → użyj najbliższej dostępnej struktury (nawet starszy swing high/low na H1), z jawną etykietą: `Niska jakość — publikacja z tytułu gwarancji sesyjnej (confidence: [wartość])`.
+      - **Krok 5c — zakaz D1/H4 w degradacji:** mechanizm degradacji NIGDY nie sięga po D1/H4 w celu wypełnienia gwarancji liczby — wyłącznie H1/M15/M5. (Rozszerzenie ramy H4/D1 istnieje tylko jako Krok 4, PRZED degradacją, i nie jest jej częścią.)
+      - **Krok 5d — karta zawsze pełna:** karta sesji zawsze wyświetla 3 wiersze TOP 3 + 1 wiersz XAU z kompletnymi Entry/SL/TP1 — zero pustych pól, zero "brak setupu", zero "niekompletne".
+      - Hard-blocks E4 pozostają w mocy dla gwarancji z JEDNYM wyjątkiem: blok "Low confidence <60" nie stosuje się do slotów gwarancji (zastępuje go drabinka 5a). Freshness, NO-ENTRY window, duplicate, entry-in-zone, SL arbitralny — bezwzględne również dla gwarancji.
 
    d. Każdy do właściwego tematu Telegram wg routingu §3.
    e. Cap: maks 3 z tej watchlisty per routine (niezależnie od XAU cap).
@@ -231,12 +240,12 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
 11b. **FRESHNESS CHECK 2 — finalny, tuż przed publikacją** (§10): świeży `quote_get` po każdym `chart_set_symbol`, ponowna weryfikacja każdego poziomu. Jeśli cokolwiek zmieniło się od Freshness Check 1 (cena weszła w strefę, przeszła, lub TP trafiony) → unieważnij lub zaktualizuj, nie publikuj nieświeżego.
 12. Write/update setups in `memory/active_setups.json` and append to `journal/signals_log.jsonl`.
 13. Clean screenshots (§11): hide indicators/tools not used in this analysis, draw box entry + SL/TP1-3, capture, then restore only what was actually used.
-14. Send to Telegram via CLI (never the MCP tool — see `context/telegram_config_notes.md`), in this fixed order:
+14. **⚠️ SEND-ORDER GATE (added 2026-07-17 after 2 consecutive violations — trw2-newyork and trw2-ny2 both sent carry-over before pre-session):** before sending ANY Telegram card this step, answer explicitly: "Has the pre-session analysis card (14a) already been sent this run?" If the answer is no, send 14a NOW, before touching 14b/14c, even if the carry-over/signal card content was prepared first chronologically. Preparing a card's content out of order is fine; **sending** it out of order is not. Send to Telegram via CLI (never the MCP tool — see `context/telegram_config_notes.md`), in this fixed order:
     a. **Pre-session analysis card (mandatory, every session)** — the approved rich analysis layout at `context/session_analysis_template.html` (approved 2026-07-06 from reference screenshot; locked, don't redesign): header with ticker/price/bias badge, previous-setup status, market context, D1/H4/phase/probability tiles, session plan, scenarios A/B/C with %, liquidity map (BSL/SSL), active FVGs, fibonacci, transaction levels with hit-checkmarks, RR tiles. Weekdays: **XAUUSD, always** → `xau` topic. Weekend crypto sessions: BTCUSDT as primary → `krypto` topic. Render `card render --width 1100`. The card's "POPRZEDNI SETUP" section gives a short summary of the primary instrument's carry-over — it does NOT replace the primary instrument's own carry-over status card (step 2 applies to EVERY active setup, primary included).
       **Obowiązkowe sekcje karty sesji (rozszerzone 2026-07-17):**
       1. **MAKRO** — lista newsów przeszłych (actual vs forecast, 1-zdaniowy wniosek) + nadchodzących (czas UK, nazwa, instrument, szacowany wpływ) + okna NO-ENTRY z dokładnymi godzinami UK (format: "14:25–15:15 UK: ISM Manufacturing → USD, NAS100, SP500").
       2. **XAU STREAM** — status świeżości setupu intraday (wygenerowany / brak / w NO-ENTRY window), confidence, poziomy. Jeśli brak: zdanie „BRAK ŚWIEŻEGO SETUPU XAU — [powód]". RSI H4 status: wartość RSI H4 XAUUSD (trigger <25 lub nie).
-      3. **TOP 3 WATCHLIST** — tabela: instrument | topic Telegram | confidence | Fib level (0.5/0.618/0.786) | etykieta (`standardowy H1` / `gwarancja sesyjna` / `rozszerzona rama H4` / `rozszerzona rama D1` / `rozszerzona rama H4 + gwarancja`). Jeśli <3 opublikowane — napisz ile i podaj krok hierarchii na którym zatrzymano się oraz powód (np. "krok 5: brak M5 triggera na 7 z 10 instrumentów, range na rynku").
+      3. **TOP 3 WATCHLIST** — tabela: **zawsze dokładnie 3 wiersze** z kompletnymi Entry/SL/TP1: instrument | topic Telegram | confidence | Fib level (0.5/0.618/0.786) | etykieta (`standardowy H1` / `gwarancja sesyjna (confidence: X)` / `rozszerzona rama H4` / `rozszerzona rama D1` / kombinacje / `Niska jakość — gwarancja sesyjna (confidence: X)`). Zero pustych pól, zero "brak setupu" (gwarancja 3+1, §7 krok 8c Krok 5).
       4. **SWING** (jeśli cokolwiek trafiło do §7d lub §7c) — instrument, kierunek, trigger, lifecycle.
       5. **FRESHNESS STATUS** — podsumowanie: ile setupów przeszło Check 1 / ile opublikowanych po Check 2.
     b. Carry-over **PLAN [SESJA] graphic cards** for ALL active setups — primary instrument included (`context/carryover_card_template.html`) — one card per active setup, each to its instrument topic. Card name: **PLAN ASIA / PLAN LONDYN / PLAN NEW YORK** (auto-detected from UTC time: 00–07/08–12/13–21). Time displayed as London time (BST/GMT). Mandatory pipeline per §7 krok 2 (updated 2026-07-07): (1) bar-walk M5/M15 → SL/TP touch check → scenario engine → (2) `chart_set_timeframe("15")` → Alt+R Auto-fit → `draw_shape` yellow ENTRY box + SL (red) + TP1/TP2 (green) → verify levels in frame → `capture_screenshot region=chart` → (3) rename to `<id>_m15_standard_<YYYY-MM-DD>_<HHMM>.png`, write companion `_meta.json` (timeframe="15", has_entry_box, has_sl_line, has_tp_lines, auto_fit=true) → (4) update `active_setups.json screenshot_m15_path` → (5) `tv card fill-carryover --id <id> --datetime "YYYY-MM-DD HH:MM UTC" [--m5-status taken|waiting|invalidated] ...` → PNG → Telegram. Card has M5 scalp section auto-generated from setup, confidence chip (≥75% green / 65–74% gold / <65% gray), logo from `assets/trw_logo.jpg`. H1 screenshot = BUG — card shows placeholder + red banner instead of embedding it. Text-only carry-over messages retired; full text status goes to journal.
@@ -332,7 +341,7 @@ OTE liczone ZAWSZE ze **swingu M15** (high impulsu M15 → low korekty lub odwro
 | News hard window | **5 min PRZED do 25 min PO** każdej High Impact publikacji dla walut/regionów korelowanych z instrumentem (§6.2). |
 | Entry box in-zone | Cena jest **aktualnie w środku entry box w momencie generowania setupu** (live price inside [entry_lower, entry_upper]) → nie publikuj jako nowy setup; może być aktualizacją istniejącego active_setups.json entry. |
 | macro_conflict | `macro_conflict = true` from §6 macro review. |
-| Low confidence | `confidence < 60`. |
+| Low confidence | `confidence < 60` — **NIE dotyczy slotów gwarancji 3+1** (§7 krok 8c Krok 5a: drabinka 60→50→40→30 zastępuje ten blok dla gwarancji; setup dostaje jawną etykietę gwarancji z wartością confidence). Dla setupów poza mechanizmem gwarancji blok obowiązuje bez zmian. |
 | Entry box violated | Any M15 **close** inside the entry box pre-publication. Wick-only touch without M15 close does not invalidate. (SL wick = SL hit — handle via bar-walk, separately.) |
 | Duplicate setup | Same instrument + same direction + similar logic already in `active_setups.json`. |
 | Cap exceeded | XAU max 2 active; all instruments max 3 per routine. |
@@ -575,7 +584,7 @@ Subtract points for: macro conflict, unclear structure, late entry, low RR, immi
 - 80-89 — strong, publish.
 - 70-79 — acceptable, publish.
 - 60-69 — acceptable (borderline), publish.
-- <60 — reject.
+- <60 — reject, **CHYBA ŻE slot gwarancji 3+1** (§7 krok 8c Krok 5a): wtedy publikacja z drabinką 60→50→40→30 i jawną etykietą gwarancji z wartością confidence. Poza mechanizmem gwarancji <60 = reject bez zmian.
 
 Every published setup needs a `reason_short` with the 2-4 factors that drove the score — never just the number.
 
@@ -595,7 +604,7 @@ Every published setup needs a `reason_short` with the 2-4 factors that drove the
 
 (Renamed from "Risk engine" — see §16 for the separate, analytical-only Portfolio Risk Engine. This section is the only one that gates what gets published.)
 
-**Publish only if all of:** confidence ≥60, entry box fresh and unviolated, RR acceptable, no strong macro conflict, SL is structurally logical (not arbitrary), not a duplicate of an active setup, aligned with HTF trend (or has a clearly-documented strong counter-trend trigger).
+**Publish only if all of:** confidence ≥60 (**wyjątek: sloty gwarancji 3+1 — drabinka 60→50→40→30 per §7 krok 8c Krok 5a, z jawną etykietą**), entry box fresh and unviolated, RR acceptable, no strong macro conflict, SL is structurally logical (not arbitrary), not a duplicate of an active setup, aligned with HTF trend (or has a clearly-documented strong counter-trend trigger).
 
 **Max concurrent published setups:**
 - **XAU (XAUUSD) — intraday stream:** max 2 aktywne. Osobny strumień — nie wlicza się do TOP 3 cap poniżej.
@@ -808,4 +817,4 @@ The portfolio block is always short (5-7 lines) — it illustrates the week/day,
 
 ## 17. Final rule
 
-One excellent setup beats three mediocre ones. No signal beats a forced signal. Honest statistics beat inflated activity.
+One excellent setup beats three mediocre ones — but the 3+1 guarantee (§7 krok 8c Krok 5, 2026-07-18) means the required setup count is ALWAYS delivered; quality differences are disclosed through the confidence value and guarantee label, never through a missing setup. Honest statistics beat inflated activity: a guarantee-slot setup carries its real (low) confidence in the journal, so the stats stay truthful.
