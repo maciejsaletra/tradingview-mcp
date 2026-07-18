@@ -45,6 +45,7 @@ D1 i H4 są **KATEGORYCZNIE ZAKAZANE** w logice i na kartach day tradingu (TOP 3
 **Scalp XAU (Strategia C) — WYŁĄCZNIE XAUUSD, równoległe rutyny trw2-scalp-xau-* (2026-07-18), okna 2h: Asia 01:20–03:20 / London 08:20–10:20 / NY 13:20–15:20 UK:**
 - Instrument: zawsze i wyłącznie XAUUSD — żadnej watchlisty, żadnych innych instrumentów.
 - TF: M15 bias → M5 struktura → M3 trigger (primary) lub M5 close fallback po 3 świecach.
+- **Progi (złagodzone 2026-07-18):** confidence ≥60 (ujednolicone z systemem, bez drabinki degradacji — poniżej 60 = cisza), RR TP1 ≥1.5 (odrzucenie poniżej niezależnie od confidence). Entry = przecięcie OB/FVG M5 z zakresem **Fibo 0.5–0.7 (Golden Pocket jako przedział, nie punkt 0.618)**; confluence min. 3 elementy wciąż wymagane mimo szerszej strefy.
 - D1/H4/H1 całkowicie nieużywane — zero wpływu na confidence scalpa.
 - Routing Telegram: **WYŁĄCZNIE temat "SCALPING XAU"** (`--topic scalp_xau`, thread 2851) — nigdy temat `xau`.
 - Routing do swing: przez `structural_significance: true` (oceniane poza modułem scalp), NIE przez wysokość confidence. Scalp z confidence 78 pozostaje scalpem jeśli brak cech strukturalnych swing.
