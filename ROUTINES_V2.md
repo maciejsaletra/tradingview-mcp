@@ -170,6 +170,7 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
 5. **Krok 0 — Makro/news/DXY/VIX review** (§6) — execute fully before any chart analysis.
 6. Establish HTF context for the full watchlist (4H/1D, +1W on Sunday) — **wyłącznie na potrzeby SWING ROUTING (krok 9, §7c, §7d) i narracji makro.** Zakaz używania tego odczytu w logice TOP 3/XAU day trading (2026-07-18).
 6.5. **M5 Scalp "na dzień dobry" [optional, session-open only]** — run this block only when ALL 5 prerequisites pass; otherwise skip silently (no journal entry needed for a clean skip).
+   **Wyłączenie z gwarancji/degradacji (2026-07-18):** moduł scalp "na dzień dobry" jest WYŁĄCZONY z mechanizmu gwarancji i degradacji confidence (§7 krok 8c Krok 5 / §1.9) — pozostaje w pełni warunkowy: [optional, session-open only], próg confidence 65 (nie 60), poniżej → STOP bez drabinki degradacji, otherwise skip silently. Gwarancja liczby setupów (zawsze 3 TOP 3 + 1 XAU) dotyczy wyłącznie tych dwóch kategorii — scalp jest bonusem ponad tę gwarancję, nigdy jej częścią.
    **Timeframe structure for this module only** (does NOT affect day-trading H1/M15/M5 or swing D1/H4 in other sections):
    - **M15** = short-term bias / context frame — replaces former D1+H4+H1 alignment. Check direction of the last M15 impulse (BOS/CHoCH) and price relation to the reference range.
    - **M5** = structure identification — BOS/CHoCH after sweep, OB/FVG on pullback.
@@ -348,7 +349,7 @@ OTE liczone ZAWSZE ze **swingu M15** (high impulsu M15 → low korekty lub odwro
 | Low confidence | `confidence < 60` — **NIE dotyczy slotów gwarancji 3+1** (§7 krok 8c Krok 5a: drabinka 60→50→40→30 zastępuje ten blok dla gwarancji; setup dostaje jawną etykietę gwarancji z wartością confidence). Dla setupów poza mechanizmem gwarancji blok obowiązuje bez zmian. |
 | Entry box violated | Any M15 **close** inside the entry box pre-publication. Wick-only touch without M15 close does not invalidate. (SL wick = SL hit — handle via bar-walk, separately.) |
 | Duplicate setup | Same instrument + same direction + similar logic already in `active_setups.json`. |
-| Cap exceeded | XAU max 2 active; all instruments max 3 per routine. |
+| Cap exceeded | XAU max 2 active; all instruments max 3 per routine. Scalp (Strategia C, moduł "na dzień dobry") NIE wlicza się do capu TOP 3 (max 3) — działa jako osobny slot P5, niezależny od limitu watchlisty (2026-07-18). |
 | SL arbitrary | SL chosen to fit RR target, not from structural invalidation logic. |
 | Friday late | After 18:00 UK Friday: do not open new swings if scenarios A/B/C cannot complete before weekend market close. |
 
@@ -615,7 +616,7 @@ Every published setup needs a `reason_short` with the 2-4 factors that drove the
 **Max concurrent published setups:**
 - **XAU (XAUUSD) — intraday stream:** max 2 aktywne. Osobny strumień — nie wlicza się do TOP 3 cap poniżej.
 - **XAU RSI H4 swing (§7c) + swing (§7d):** max 1 aktywny swing per instrument. Swing nie wlicza się do intraday cap.
-- **TRW TOP 3 (watchlista bez złota):** maks 3 intraday setups per routine. Swing (§7d) na non-XAU instrumentach to osobna pula — nie wchodzi do limitu 3.
+- **TRW TOP 3 (watchlista bez złota):** maks 3 intraday setups per routine. Swing (§7d) na non-XAU instrumentach to osobna pula — nie wchodzi do limitu 3. **Scalp (Strategia C, moduł "na dzień dobry") NIE wlicza się do capu TOP 3 (max 3) — działa jako osobny slot P5, niezależny od limitu watchlisty (2026-07-18).**
 - **Weekend crypto (2026-07-18 — zastępuje "max 2 key setups" bez dolnego limitu):**
   - **BTCUSDT: ZAWSZE dokładnie 1 setup na każdej sesji weekendowej** (Sat 02:30 / 14:00 / 20:00, Sun 02:30 / 14:00 / 20:00) — analogicznie do gwarancji XAU w dni robocze. Mechanizm degradacji confidence 60→50→40→30 wyłącznie na H1/M15/M5, identyczny jak §7 krok 8c Krok 5a-b; przy braku struktury nawet na 30 → najbliższy swing H1 z etykietą `Niska jakość — gwarancja sesyjna (confidence: X)`. Zakaz sięgania po D1/H4 (§4 wiersz Crypto weekend).
   - **Watchlista crypto poza BTC (ETH/XRP/SOL/DOGE): max 2 dodatkowe setupy per routine, BEZ wymuszonej gwarancji** — cisza przy braku jakości pozostaje akceptowalna (thin weekend liquidity).
