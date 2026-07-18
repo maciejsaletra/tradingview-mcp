@@ -59,7 +59,7 @@ XAUUSD→`xau` · EURUSD/USDJPY/XAGUSD→`waluty` · SP500/DJ30/NAS100/GER40/JP2
 
 ## 4. Timeframes
 
-- **Session start (every routine):** 4H, then 1D — establish HTF context first.
+- **Session start (every routine):** 4H, then 1D — **wyłącznie dla SWING ROUTING (§7c/§7d) i narracji makro w handoff/journal.** Od 2026-07-18 odczyt D1/H4 NIE zasila logiki TOP 3/XAU day trading (zakaz kategoryczny — §7 krok 7a, krok 8c Krok 4, §7b E1).
 - **Sunday 20:00 weekly:** 4H, 1D, 1W.
 
 **Obowiązująca struktura TF (2026-07-17) — dotyczy wszystkich sekcji dokumentu:**
@@ -67,7 +67,7 @@ XAUUSD→`xau` · EURUSD/USDJPY/XAGUSD→`waluty` · SP500/DJ30/NAS100/GER40/JP2
 | Strumień | Bias/kontekst | Impuls/OTE | Trigger wejścia | Uwagi |
 |---|---|---|---|---|
 | **Day trading** (XAU + TOP3) | H1 (lub M30 fallback gdy H1 bez jasnych kotwic) | **M15** — swing M15, Fibo 0.618–0.786 (rozszerzone 0.5 przy wysokim wolumenie) | **M5** — BOS M5 / CHoCH M15 / engulfing | OTE liczone z M15, nie M30 |
-| **Swing** (routing §7d + RSI §7c) | D1 (makro/bias) | **H4** — struktura, BOS/CHoCH, harmoniczne, RSI | **H4** — zamknięcie świecy H4 jako potwierdzenie | RSI liczony na H4, interpretowany jako sygnał swing |
+| **Swing** (routing §7d + RSI §7c) | **D1** — bias główny | **H4** — struktura i trigger (BOS/CHoCH, harmoniczne patterny, RSI H4 <25 jako sygnał kupna); zamknięcie świecy H4 jako potwierdzenie | **H4** (trigger) + **H1 = WYŁĄCZNIE sanity check (2026-07-18)** | H1 służy tylko do lokalnej weryfikacji tuż przed wejściem, czy cena na niższej ramie nie przeczy biasowi D1/H4. H1 NIE jest gate'em i NIE jest triggerem — nie generuje samodzielnie sygnału swing, tylko potwierdza lub ostrzega (ostrzeżenie = adnotacja w reason_short/handoff, nie veto). RSI liczony na H4. |
 
 Use `ICT HTF Candles (fadi) [CD80WN]` to read D1/4H overlay without a full timeframe switch, then confirm with an explicit `chart_set_timeframe` pass (per existing `PROJECT_CONTEXT.md` note).
 
@@ -159,7 +159,7 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
 3. Read the last `journal/daily_journal.md` entry (and `journal/weekly_review.md` if Sunday).
 4. Read `context/strategy_reference.md` → `PROJECT_CONTEXT.md` for strategy/indicators/assets.
 5. **Krok 0 — Makro/news/DXY/VIX review** (§6) — execute fully before any chart analysis.
-6. Establish HTF context for the full watchlist (4H/1D, +1W on Sunday).
+6. Establish HTF context for the full watchlist (4H/1D, +1W on Sunday) — **wyłącznie na potrzeby SWING ROUTING (krok 9, §7c, §7d) i narracji makro.** Zakaz używania tego odczytu w logice TOP 3/XAU day trading (2026-07-18).
 6.5. **M5 Scalp "na dzień dobry" [optional, session-open only]** — run this block only when ALL 5 prerequisites pass; otherwise skip silently (no journal entry needed for a clean skip).
    **Timeframe structure for this module only** (does NOT affect day-trading H1/M15/M5 or swing D1/H4 in other sections):
    - **M15** = short-term bias / context frame — replaces former D1+H4+H1 alignment. Check direction of the last M15 impulse (BOS/CHoCH) and price relation to the reference range.
@@ -191,7 +191,7 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
    - **Session-close enforcement (carry-over runs):** any entry with `lifecycle: "scalp"` whose `session_close_by` has passed must be resolved at the current price in the next routine's bar-walk — treat it as a time-expired close regardless of P&L. Log to `results_log.jsonl` with `exit_reason: "scalp_session_deadline"`. Never carry a scalp through a session boundary.
    - **Monitoring aktywnych scalpów (2026-07-17):** jeśli aktywny scalp jest w `active_setups.json` i przerwa od `last_checked_at` > 10 min → wykonaj lightweight check: `quote_get` → porównaj z SL, TP1, `session_close_by`. Jeśli hit → rozwiąż i zaloguj. Nie czekaj na pełną rutynę do wykrycia zakończenia scalpa.
 7. **XAU STREAM (zawsze pierwszy, osobny od reszty watchlisty):**
-   a. `chart_set_symbol("XAUUSD")` → pełna analiza D1/H4 (bias makro), H1 lub M30 fallback (bias struktury/BOS/CHoCH), M15 (impuls + OTE), M5 (trigger wejścia).
+   a. `chart_set_symbol("XAUUSD")` → analiza WYŁĄCZNIE H1 (bias struktury/BOS/CHoCH; M30 fallback gdy H1 bez jasnych kotwic), M15 (impuls + OTE), M5 (trigger wejścia). **ZAKAZ KATEGORYCZNY D1/H4 w logice XAU day trading (2026-07-18)** — nie jako tło, nie jako bias makro; D1/H4 wolno czytać wyłącznie w ramach SWING ROUTING check (§7 krok 9 / §7c / §7d), nigdy dla setupu intraday.
    b. Metoda 1: formalny confidence §8 + OTE (0.618–0.786, lub 0.5 przy wysokim wolumenie §7b E3).
    c. Metoda 2: confluence multi-element — `data_get_pine_boxes` (liquidity zones), `data_get_ohlcv` summary, Fib levels (0.618 entry / 1.272 TP1 / 1.618 TP2), DXY correlation (from Krok 0), BOS/CHoCH direction.
    d. Freshness Check 1 przy generowaniu (§10): entry box musi być PRZED aktualną ceną, nie „w trakcie", nie wsteczny.
@@ -213,12 +213,7 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
 
       **Krok 3 — Gwarancja sesyjna (obniżony confidence):** jeśli <3 kandydatów po kroku 1 → uzupełnij brakujące sloty najlepszymi świeżymi setupami z H1 o confidence <60. Freshness i hard-blocks bezwzględne — bez wyjątku. Etykieta: `TOP 3 — gwarancja sesyjna (confidence <60)`.
 
-      **Krok 4 — Rozszerzenie timeframe (tylko jeśli kroki 1–3 nie dały 3 setupów, WYŁĄCZNIE Strategia A/B):** dla instrumentów, które nie dały wyniku na H1, rozszerz ramę biasu w kolejności:
-      - **H4 fallback:** szukaj H4 BOS/CHoCH jako ramy biasu, wejście nadal na M15 OTE + M5 trigger (bez zmiany). Freshness Check 1 i wszystkie hard-blocks (§7b E4) bezwzględne — rozszerzenie ramy nie omija żadnego bloku.
-      - **D1 fallback:** jeśli H4 też nie daje wyniku → D1 BOS/CHoCH jako bias, wejście M15/M5 bez zmian. Najwyższy dopuszczalny poziom.
-      - Confidence liczony standardowo (§8) — brak automatycznego obniżenia za rozszerzoną ramę. Jeśli wynik <60 → stosuj etykietę gwarancji sesyjnej łącznie.
-      - **Strategia C (scalp) NIE podlega temu fallbackowi** — scalp zachowuje sztywny zakres M15/M5/M3/opcjonalnie M30; D1/H4/H1 nie są sprawdzane w module scalp zgodnie z §7b E7.
-      - Etykieta: `TOP 3 — rozszerzona rama [H4/D1] (H1 nie dał wyniku)`. Jeśli jednocześnie confidence <60: `TOP 3 — rozszerzona rama [H4/D1], gwarancja sesyjna`.
+      **Krok 4 — USUNIĘTY (2026-07-18): ZAKAZ KATEGORYCZNY D1/H4 dla TOP 3 i XAU.** TOP 3 i XAU (day trading) używają WYŁĄCZNIE H1 (bias) / M15 (OTE) / M5 (trigger). D1 i H4 są kategorycznie zakazane w tej logice — nie jako tło, nie jako fallback, nie jako "bias makro". Brak setupów na H1/M15/M5 rozwiązuje WYŁĄCZNIE degradacja confidence (Krok 5 poniżej), NIGDY rozszerzenie ramy czasowej. D1/H4 (BOS/CHoCH D1, harmoniczne, RSI H4 <25) należą wyłącznie do strumienia Swing (§4 wiersz Swing, §7c, §7d). Etykiety `rozszerzona rama H4/D1` są wycofane.
 
       **Krok 5 — GWARANCJA 3+1 Z DEGRADACJĄ CONFIDENCE (zastępuje "publikuj tyle ile jest", 2026-07-18 — bez wyjątków):**
 
@@ -226,7 +221,7 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
 
       - **Krok 5a — degradacja progu:** jeśli po Krokach 1–4 liczba setupów < wymagana → NIE zatrzymuj się. Obniżaj próg confidence stopniowo: **60 → 50 → 40 → 30**, skanując wyłącznie **H1/M15/M5** (bez D1/H4), aż znajdziesz brakującą liczbę setupów z policzalnym Entry/SL/TP.
       - **Krok 5b — ostatnia struktura:** jeśli nawet przy confidence 30 brak strefy OB/FVG lub swinga do OTE → użyj najbliższej dostępnej struktury (nawet starszy swing high/low na H1), z jawną etykietą: `Niska jakość — publikacja z tytułu gwarancji sesyjnej (confidence: [wartość])`.
-      - **Krok 5c — zakaz D1/H4 w degradacji:** mechanizm degradacji NIGDY nie sięga po D1/H4 w celu wypełnienia gwarancji liczby — wyłącznie H1/M15/M5. (Rozszerzenie ramy H4/D1 istnieje tylko jako Krok 4, PRZED degradacją, i nie jest jej częścią.)
+      - **Krok 5c — zakaz D1/H4 w degradacji:** mechanizm degradacji NIGDY nie sięga po D1/H4 w celu wypełnienia gwarancji liczby — wyłącznie H1/M15/M5. (Od 2026-07-18 D1/H4 są zakazane w całej logice TOP 3/XAU — patrz Krok 4 wyżej — więc degradacja to JEDYNY mechanizm uzupełniania liczby.)
       - **Krok 5d — karta zawsze pełna:** karta sesji zawsze wyświetla 3 wiersze TOP 3 + 1 wiersz XAU z kompletnymi Entry/SL/TP1 — zero pustych pól, zero "brak setupu", zero "niekompletne".
       - Hard-blocks E4 pozostają w mocy dla gwarancji z JEDNYM wyjątkiem: blok "Low confidence <60" nie stosuje się do slotów gwarancji (zastępuje go drabinka 5a). Freshness, NO-ENTRY window, duplicate, entry-in-zone, SL arbitralny — bezwzględne również dla gwarancji.
 
@@ -245,7 +240,7 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
       **Obowiązkowe sekcje karty sesji (rozszerzone 2026-07-17):**
       1. **MAKRO** — lista newsów przeszłych (actual vs forecast, 1-zdaniowy wniosek) + nadchodzących (czas UK, nazwa, instrument, szacowany wpływ) + okna NO-ENTRY z dokładnymi godzinami UK (format: "14:25–15:15 UK: ISM Manufacturing → USD, NAS100, SP500").
       2. **XAU STREAM** — **zawsze dokładnie 1 setup z kompletnymi Entry/SL/TP1** (gwarancja §7 krok 7e), confidence, poziomy, etykieta gwarancji jeśli confidence <60. Fraza "BRAK ŚWIEŻEGO SETUPU XAU" jest zakazana na karcie (2026-07-18) — jedyny dopuszczalny wariant: setup odroczony aktywnym oknem NO-ENTRY, publikowany zaraz po końcu okna z adnotacją czasu. RSI H4 status: wartość RSI H4 XAUUSD (trigger <25 lub nie).
-      3. **TOP 3 WATCHLIST** — tabela: **zawsze dokładnie 3 wiersze** z kompletnymi Entry/SL/TP1: instrument | topic Telegram | confidence | Fib level (0.5/0.618/0.786) | etykieta (`standardowy H1` / `gwarancja sesyjna (confidence: X)` / `rozszerzona rama H4` / `rozszerzona rama D1` / kombinacje / `Niska jakość — gwarancja sesyjna (confidence: X)`). Zero pustych pól, zero "brak setupu" (gwarancja 3+1, §7 krok 8c Krok 5).
+      3. **TOP 3 WATCHLIST** — tabela: **zawsze dokładnie 3 wiersze** z kompletnymi Entry/SL/TP1: instrument | topic Telegram | confidence | Fib level (0.5/0.618/0.786) | etykieta (`standardowy H1` / `gwarancja sesyjna (confidence: X)` / `Niska jakość — gwarancja sesyjna (confidence: X)`; etykiety `rozszerzona rama H4/D1` wycofane 2026-07-18 — D1/H4 kategorycznie zakazane w TOP 3). Zero pustych pól, zero "brak setupu" (gwarancja 3+1, §7 krok 8c Krok 5).
       4. **SWING** (jeśli cokolwiek trafiło do §7d lub §7c) — instrument, kierunek, trigger, lifecycle.
       5. **FRESHNESS STATUS** — podsumowanie: ile setupów przeszło Check 1 / ile opublikowanych po Check 2.
     b. Carry-over **PLAN [SESJA] graphic cards** for ALL active setups — primary instrument included (`context/carryover_card_template.html`) — one card per active setup, each to its instrument topic. Card name: **PLAN ASIA / PLAN LONDYN / PLAN NEW YORK** (auto-detected from UTC time: 00–07/08–12/13–21). Time displayed as London time (BST/GMT). Mandatory pipeline per §7 krok 2 (updated 2026-07-07): (1) bar-walk M5/M15 → SL/TP touch check → scenario engine → (2) `chart_set_timeframe("15")` → Alt+R Auto-fit → `draw_shape` yellow ENTRY box + SL (red) + TP1/TP2 (green) → verify levels in frame → `capture_screenshot region=chart` → (3) rename to `<id>_m15_standard_<YYYY-MM-DD>_<HHMM>.png`, write companion `_meta.json` (timeframe="15", has_entry_box, has_sl_line, has_tp_lines, auto_fit=true) → (4) update `active_setups.json screenshot_m15_path` → (5) `tv card fill-carryover --id <id> --datetime "YYYY-MM-DD HH:MM UTC" [--m5-status taken|waiting|invalidated] ...` → PNG → Telegram. Card has M5 scalp section auto-generated from setup, confidence chip (≥75% green / 65–74% gold / <65% gray), logo from `assets/trw_logo.jpg`. H1 screenshot = BUG — card shows placeholder + red banner instead of embedding it. Text-only carry-over messages retired; full text status goes to journal.
@@ -269,8 +264,8 @@ Authoritative machine-readable definition of publishable entry conditions. Cross
 
 | TF | Rola | Requirement |
 |---|---|---|
-| D1 | **Tło (background)** | Kontekst kierunkowy, BOS/CHoCH notowane narracyjnie. NIE blokuje wejścia. Konflikt z H1/M15 = label "background conflict" na karcie, nie veto. |
-| H4 | **Tło (background)** | Jak D1 — kontekst/narracja, nie gate. Dla swingu (§7c/§7d): rama struktury i OTE. |
+| D1 | **ZAKAZANY w day tradingu (2026-07-18)** | Kategorycznie zakazany w logice TOP 3 i XAU intraday — nie jako tło, nie jako fallback, nie jako bias makro, nie w confidence. Należy WYŁĄCZNIE do strumienia Swing (§4 wiersz Swing, §7c, §7d): tam D1 = bias główny. |
+| H4 | **ZAKAZANY w day tradingu (2026-07-18)** | Jak D1 — kategorycznie zakazany w logice TOP 3/XAU intraday. Należy WYŁĄCZNIE do Swing: tam H4 = struktura i trigger (BOS/CHoCH, harmoniczne, RSI H4 <25). |
 | H1 | **Bias strukturalny (primary)** | Identyfikacja BOS/CHoCH, OB/FVG, swing HL. Główna podstawa strukturalna decyzji intraday. CHoCH potwierdzony **przed publikacją** (nie tylko approaching zone). **Jeśli H1 nie ma wyraźnego swingu (ADX H1 <20 lub wąski ATR — range mode):** nie zwracaj "brak setupu" — sprawdź automatycznie warunki Strategii C (§7 krok 6.5: M15 bias / M5 struktura / M3 trigger) dla tego instrumentu, jeśli jesteśmy w oknie sesji scalp. Range mode routing nie tworzy nowej strategii — wybiera właściwy moduł dla reżimu rynku. |
 | M30 | **Fallback bias** | Używany WYŁĄCZNIE gdy H1 nie ma jasnych kotwic struktury (brak swingów lub choppy). **NIE jest podstawą OTE** — OTE liczone z M15, nie M30. |
 | M15 | **Impuls + OTE (primary)** | Swing M15 (high impulsu → low korekty lub odwrotnie) = podstawa Fibonacci. OTE: 0.618–0.786 domyślnie, rozszerzone do 0.5 przy potwierdzonym wysokim wolumenie. Entry zone = OB/FVG M15 na głębokości OTE. Lekkie odstępstwo OTE: **0.5–0.6 akceptowalne** gdy pozostałe elementy confluence (CHoCH, M5 trigger, liquidity) są mocne — odnotuj w `reason_short`. |
@@ -304,13 +299,13 @@ Authoritative machine-readable definition of publishable entry conditions. Cross
 
   Każdy z tych 4 wartości liczbowych musi być zapisany jako osobne pole w `signals_log.jsonl` (klucz `confidence_components`) — nie tylko suma. Umożliwia audyt czy próg 60 był realnie osiągnięty.
 
-- **B — continuation:** pullback do OB/FVG M15 (na głębokości OTE ze swingu M15) w istniejącym trendzie HTF. Publikowalny przy confidence ≥60 gdy **H1 CHoCH w kierunku biasu jest potwierdzony** przed publikacją. D1/H4 nie są wymagane (background only) — **brak D1/H4 alignmentu NIE daje malusa do confidence** (zgodnie z projektem: D1/H4 = kontekst narracyjny, nie gate, żaden soft penalty nie istnieje). Trigger wejścia obowiązkowy na M5: BOS M5 lub CHoCH M15 lub engulfing — zakaz entry bez triggera M5/M15. Brak jakiegokolwiek CHoCH (ani H1, ani M15) → downgrade do score &lt;60, nie publikuj.
+- **B — continuation:** pullback do OB/FVG M15 (na głębokości OTE ze swingu M15) w istniejącym trendzie **H1**. Publikowalny przy confidence ≥60 gdy **H1 CHoCH w kierunku biasu jest potwierdzony** przed publikacją. **D1/H4 kategorycznie zakazane (2026-07-18)** — nie są czytane, nie dają bonusu ani malusa, nie występują w opisie setupu (trend = trend H1, nie "trend HTF"). Trigger wejścia obowiązkowy na M5: BOS M5 lub CHoCH M15 lub engulfing — zakaz entry bez triggera M5/M15. Brak jakiegokolwiek CHoCH (ani H1, ani M15) → downgrade do score &lt;60, nie publikuj.
 
   **Filtr wyczerpania trendu (Setup B only, 2026-07-17):** oblicz odległość ceny od ostatniego swing origin (punktu, od którego liczy się bieżący trend H1) w jednostkach ATR(H1,14). Jeśli `(price − swing_origin) / ATR(H1,14) > 3.0` → oznacz setup jako `trend_exhaustion: true`. W takim przypadku: próg publikacji rośnie do **70** (nie 60) ORAZ wymagaj potwierdzenia opadającego momentum — RSI H1 divergence (wyższy high ceny, niższy RSI high) jako dodatkowy element; brak RSI divergence przy `trend_exhaustion: true` → nie publikuj nawet przy confidence 70+. **Standardowy próg 60 dla Setup B bez wyczerpania pozostaje bez zmian.** Zapisz `trend_exhaustion: true/false` i `exhaustion_atr_ratio: [wartość]` jako pola w signals_log.jsonl.
 
   **Szablon opisu karty Setup B (obowiązkowy, 2026-07-17):** "Continuation pullback po CHoCH H1 z [X]% retracement, momentum [rosnące/słabnące]." Gdzie X = procentowa głębokość pullbacku liczona od swingu H1 (np. "pullback po CHoCH H1 z 48% retracement, momentum słabnące").
 
-Confidence composition: HTF alignment (0–40) + LTF structure (0–30) + RR/levels (0–20) + news/macro (0–10). See §8.
+Confidence composition: HTF alignment (0–40) + LTF structure (0–30) + RR/levels (0–20) + news/macro (0–10). See §8. **Dla day tradingu (TOP 3/XAU) "HTF alignment" = wyłącznie H1** (kierunek/struktura H1 vs setup) — D1/H4 nie wchodzą do tego bloku (zakaz 2026-07-18). Dla swingu HTF = D1/H4 normalnie.
 
 **E3. Entry box — price levels + confluence:**
 
@@ -356,7 +351,7 @@ Defined at publication time in `memory/active_setups.json`. Evaluated mechanical
 - **B — observational:** no automatic action. `mutually_exclusive_with: ["a"]` — disabled when A fires.
 - **C — structure violated:** trigger fires (e.g. H1 close below OB) → `flag_for_manual_review`, handoff warning added. No auto-close, no SL change.
 
-All scenarios: `one_shot = true`, priority A > B > C, `applied = true` blocks re-application. **Scenarios are position management — not entry conditions.**
+All scenarios: `one_shot = true`, priority A > B > C, `applied = true` blocks re-application. **Scenarios are position management — not entry conditions.** Scenariusze reduce-risk-only NIE są jedynym mechanizmem SL (korekta 2026-07-18): **po trafieniu TP1 na runnerze (30%) obowiązuje trailing SL 0.2% (swing/day) / 0.1% (scalp) — patrz §16** — trailing jest uzupełnieniem scenariuszy, działa równolegle po TP1.
 
 ---
 
@@ -655,6 +650,26 @@ If more candidates qualify, keep only the highest quality/clarity-to-risk ones.
 
 ---
 
+## 9a. Expiry setupów PENDING (2026-07-18)
+
+Każdy setup ze statusem PENDING (opublikowany, nie triggerowany) **wygasa automatycznie po zakończeniu sesji, w której został opublikowany** (Azja / Londyn / NY — wg okien sesyjnych §5/§7 14b: Azja 00–07, Londyn 08–12, NY 13–21 UK).
+
+**Procedura (start każdej rutyny sesyjnej, w ramach §7 krok 2 carry-over check):**
+1. Dla każdego wpisu w `memory/active_setups.json` ze statusem pending/not-triggered: porównaj sesję publikacji (`published_at` → okno sesyjne) z sesją bieżącą.
+2. Jeśli setup jest starszy niż dozwolone okno → status `expired`, usuń z `active_setups.json`, zaloguj do `journal/results_log.jsonl` z `final_status: "expired"`, powód: `"expired — nie zrealizowany w oknie sesji"`, `rr_realized: 0`.
+3. Bar-walk przed wygaszeniem obowiązuje normalnie — jeśli okazuje się, że setup jednak triggerował intrabar między rutynami, rozlicz go jako triggerowany, nie jako expired.
+
+**Okna expiry per lifecycle:**
+| Lifecycle | Expiry |
+|---|---|
+| Day trading (TOP 3 / XAU intraday) | **1 sesja** — koniec sesji publikacji |
+| Scalp | koniec okna scalp (`session_close_by`, §7 krok 6.5 — bez zmian, ostrzejsze niż 1 sesja) |
+| Swing (§7c/§7d) | **3 sesje** — zgodnie z naturą ramy D1/H4 |
+
+Nowe setupy gwarancji 3+1 każdej sesji są generowane na aktualnym zakresie cenowym — wygaszenie starego PENDING nie zostawia dziury, tylko wymusza świeżą analizę. (Dowód potrzeby: sig-088 wisiał PENDING od 2026-07-16 15:09 przez 5+ sesji bez mechanizmu wygaszania — entry zone 50+ pkt od ceny przez cały okres.)
+
+---
+
 ## 10. Box entry & freshness — DOUBLE CHECK (mandatory)
 
 Every setup has a BOX ENTRY: a rectangle with clear entry price range, SL, TP1/TP2/TP3 (if applicable), and a short entry reason.
@@ -779,6 +794,7 @@ Jeśli symbol zmieniony — zaktualizuj tę tabelę jako source of truth. Nie u�
   - Full loss before BE: `pnl_usd = current_equity × 0.005 × (−1)`
   - Closed at BE: `pnl_usd = 0`
   - `current_equity += pnl_usd` after each trade.
+- **Trailing SL na runnerze (2026-07-18):** po osiągnięciu TP1 i zabezpieczeniu 70%, SL na pozostałych 30% przesuwa się krokowo w stronę ceny, zachowując stałą odległość: **Swing = 0.2%** od aktualnej ceny, **Scalp = 0.1%** od aktualnej ceny (day trading intraday = 0.2%, jak swing). SL trailing **nigdy się nie oddala** — przesuwa się wyłącznie w kierunku redukcji ryzyka. Operacyjnie (bar-walk §7 krok 2): przy każdej rutynie/monitoring-checku dla setupu z `tp1_hit: true` przelicz `trailing_sl = max(previous_sl, current_price × (1 − 0.002))` dla LONG (odpowiednio `min(..., × (1 + 0.002))` dla SHORT; 0.001 dla scalpa) i zapisz w `active_setups.json`. Runner rozliczany na trafieniu trailing SL, TP2/TP3 lub BE — `rr_realized_runner` w results_log liczy się od faktycznego wyjścia. Trailing SL obowiązuje PO TP1 jako uzupełnienie scenariuszy A/B/C (§7b E5) — nie zamiennik: przed TP1 jedynym mechanizmem SL pozostaje reduce-risk-only ze scenariuszy.
 - **Accounting convention (updated 2026-07-17):** the portfolio models a partial close — 70% at TP1, 30% runner. The runner leg uses `rr_realized` from `results_log.jsonl`. When the runner hits TP2 or TP3 it is recorded as a separate exit; if closed at BE it counts as 0 on the runner leg. This replaces the prior conservative full-exit-at-TP1 convention (2026-07-06) which systematically understated winners. When a resolved trade is excluded from the portfolio (pre-go-live cohort in `counted_trade_ids`), the daily portfolio block must say so in one sentence — otherwise "1 trade resolved, 0 counted" reads like a bug.
 - Purely illustrative — never referenced by §9's publish/reject logic, never used to size real trades.
 
