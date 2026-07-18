@@ -650,23 +650,25 @@ If more candidates qualify, keep only the highest quality/clarity-to-risk ones.
 
 ---
 
-## 9a. Expiry setupów PENDING (2026-07-18)
+## 9a. Expiry setupów PENDING (2026-07-18, wersja dzienna — zastępuje wersję "po jednej sesji" z tego samego dnia)
 
-Każdy setup ze statusem PENDING (opublikowany, nie triggerowany) **wygasa automatycznie po zakończeniu sesji, w której został opublikowany** (Azja / Londyn / NY — wg okien sesyjnych §5/§7 14b: Azja 00–07, Londyn 08–12, NY 13–21 UK).
+Każdy setup ze statusem PENDING (TOP 3, XAU, day trading — opublikowany, nie triggerowany) **wygasa automatycznie po zakończeniu dnia handlowego, w którym został opublikowany**. Definicja "koniec dnia" = zamknięcie sesji NY / daily close, zgodnie z rutyną `trw2-daily-close` (22:00 UK) — ten sam punkt odcięcia co dzienny reset portfolio i raport EOD.
 
-**Procedura (start każdej rutyny sesyjnej, w ramach §7 krok 2 carry-over check):**
-1. Dla każdego wpisu w `memory/active_setups.json` ze statusem pending/not-triggered: porównaj sesję publikacji (`published_at` → okno sesyjne) z sesją bieżącą.
-2. Jeśli setup jest starszy niż dozwolone okno → status `expired`, usuń z `active_setups.json`, zaloguj do `journal/results_log.jsonl` z `final_status: "expired"`, powód: `"expired — nie zrealizowany w oknie sesji"`, `rr_realized: 0`.
-3. Bar-walk przed wygaszeniem obowiązuje normalnie — jeśli okazuje się, że setup jednak triggerował intrabar między rutynami, rozlicz go jako triggerowany, nie jako expired.
+**Mechanizm:**
+1. **Przy starcie rutyny EOD/daily-close:** sprawdź wszystkie aktywne PENDING opublikowane danego dnia i wcześniej. Setup PENDING opublikowany danego dnia i nie zrealizowany do momentu daily close → status `expired`, usunięty z `active_setups.json`, zalogowany do `journal/results_log.jsonl` z `final_status: "expired"`, powód: `"expired — nie zrealizowany w oknie dnia (do daily close)"`, `rr_realized: 0`.
+2. **Przy starcie każdej innej rutyny (Azja/Londyn/NY):** setup PENDING opublikowany w dniach wcześniejszych (już przeżył pełny dzień handlowy bez realizacji) → automatycznie `expired` natychmiast, nie czekaj do EOD. Ten sam wpis do results_log.
+3. **Bar-walk przed wygaszeniem obowiązuje zawsze** — jeśli okazuje się, że setup jednak triggerował intrabar między rutynami, rozlicz go jako triggerowany (SL/TP/aktywny), nie jako expired.
 
 **Okna expiry per lifecycle:**
 | Lifecycle | Expiry |
 |---|---|
-| Day trading (TOP 3 / XAU intraday) | **1 sesja** — koniec sesji publikacji |
-| Scalp | koniec okna scalp (`session_close_by`, §7 krok 6.5 — bez zmian, ostrzejsze niż 1 sesja) |
-| Swing (§7c/§7d) | **3 sesje** — zgodnie z naturą ramy D1/H4 |
+| Day trading (TOP 3 / XAU intraday) | **1 dzień handlowy** — do daily close (22:00 UK) dnia publikacji |
+| Scalp | koniec okna scalp (`session_close_by`, §7 krok 6.5 — bez zmian, ostrzejsze) |
+| Swing (§7c/§7d) | **3 dni handlowe** — zgodnie z naturą ramy D1/H4 |
 
-Nowe setupy gwarancji 3+1 każdej sesji są generowane na aktualnym zakresie cenowym — wygaszenie starego PENDING nie zostawia dziury, tylko wymusza świeżą analizę. (Dowód potrzeby: sig-088 wisiał PENDING od 2026-07-16 15:09 przez 5+ sesji bez mechanizmu wygaszania — entry zone 50+ pkt od ceny przez cały okres.)
+**Retroaktywne czyszczenie (jednorazowe przy wdrożeniu 2026-07-18):** przeskanuj `memory/active_setups.json`, wszystkie PENDING starsze niż 1 dzień handlowy (poza Swing) → `expired` z powodem `"expired — reguła wprowadzona retroaktywnie 2026-07-18, setup przekroczył limit 1 dnia"`. (Dowód potrzeby: sig-088, Setup B H1, opublikowany 2026-07-16 15:09, wisiał PENDING 2+ dni / 5+ sesji — wygaszony tym czyszczeniem.)
+
+Nowe setupy gwarancji 3+1 każdej sesji są generowane na aktualnym zakresie cenowym — wygaszenie starego PENDING nie zostawia dziury, tylko wymusza świeżą analizę.
 
 ---
 

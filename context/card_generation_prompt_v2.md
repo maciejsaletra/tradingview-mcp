@@ -196,5 +196,5 @@ TRADING ROOM WORKSHOP
 | Karta sesji TOP 3/XAU | Mogła mieć <3 wiersze / "brak setupu XAU" | Zawsze 3+1 wierszy z kompletnymi Entry/SL/TP1 |
 | D1/H4 w day tradingu | Tło/background (nie blokują) + fallback ramy H4/D1 | **ZAKAZ KATEGORYCZNY** — zero D1/H4 w logice i na kartach TOP 3/XAU; fallback ramy usunięty; braki liczby rozwiązuje wyłącznie degradacja confidence |
 | Swing TF | D1 bias / H4 struktura+trigger | + **H1 = wyłącznie sanity check** (nie gate, nie trigger — potwierdza lub ostrzega) |
-| Expiry PENDING | Brak mechanizmu | **§9a**: day trading = 1 sesja, scalp = session_close_by, swing = 3 sesje; status `expired` + log do results_log |
+| Expiry PENDING | Brak mechanizmu | **§9a (wersja dzienna)**: day trading = 1 dzień handlowy (do daily close 22:00 UK), scalp = session_close_by, swing = 3 dni; starsze PENDING wygaszane przy starcie każdej rutyny; status `expired` + log do results_log |
 | Runner po TP1 | Statyczny SL (scenariusze only) | **Trailing SL**: 0.2% (swing/day) / 0.1% (scalp) od ceny, krokowo, nigdy się nie oddala (§16) |
