@@ -32,6 +32,15 @@
 | 18:00 | `trw2-ny2` | NY2 check |
 | 22:00 | `trw2-daily-close` | Daily close + daily summary + daily journal |
 
+### Weekday — równoległe rutyny M5 Scalp XAU (2026-07-18, §7 krok 6.5)
+| Okno (UK) | Task ID | Przebiegi co 30 min | Hard close (expiry) |
+|---|---|---|---|
+| 01:00–03:00 | `trw2-scalp-xau-asia` | 01:00 / 01:30 / 02:00 / 02:30 | 03:00 UK |
+| 08:00–10:00 | `trw2-scalp-xau-london` | 08:00 / 08:30 / 09:00 / 09:30 | 10:00 UK |
+| 13:30–15:30 | `trw2-scalp-xau-ny` | 13:30 / 14:00 / 14:30 / 15:00 | 15:30 UK |
+
+Rutyny scalp działają **RÓWNOLEGLE** do rutyn sesyjnych (`trw2-asia`/`trw2-london`/`trw2-newyork`) — osobny proces, zero blokowania, zero współdzielonego locka poza odczytem ROUTINES_V2.md. NIE generują karty TOP3/XAU day trading — wykonują wyłącznie logikę §7 krok 6.5. NIE dotykają `active_setups.json` poza własnym slotem (`strategy_type: "scalp_xau"`, odrębne od `"xau_daytrading"`).
+
 ### Weekend (crypto only)
 | Time | Task ID | Session |
 |---|---|---|
@@ -59,7 +68,7 @@
 Telegram topic routing (`.env`/`config.js` mapping):
 XAUUSD→`xau` · EURUSD/USDJPY/XAGUSD→`waluty` · SP500/DJ30/NAS100/GER40/JP225/UK100/UKOIL→`indeksy` · BTCUSDT/ETHUSDT/XRPUSDT/SOLUSDT/DOGEUSDT→`krypto`.
 
-**Routing per typ setupu (2026-07-18):** powyższa mapa instrumentów dotyczy WYŁĄCZNIE setupów day trading (TOP 3/XAU intraday) i scalpów. **Każdy setup z `lifecycle: "swing"` (§7c/§7d) idzie WYŁĄCZNIE do tematu `swing` — "SWINGI H4/D1"** (`message_thread_id: 9`, chat `-1003969670552`, `.env: TELEGRAM_THREAD_SWING=9`) — nigdy do tematu instrumentu. Przed każdą wysyłką sprawdź lifecycle setupu: swing → `--topic swing`; intraday/scalp → temat instrumentu z mapy.
+**Routing per typ setupu (2026-07-18):** powyższa mapa instrumentów dotyczy WYŁĄCZNIE setupów day trading (TOP 3/XAU intraday) i scalpów. **Każdy setup z `lifecycle: "swing"` (§7c/§7d) idzie WYŁĄCZNIE do tematu `swing` — "SWINGI H4/D1"** (`message_thread_id: 9`, chat `-1003969670552`, `.env: TELEGRAM_THREAD_SWING=9`) — nigdy do tematu instrumentu. Przed każdą wysyłką sprawdź lifecycle/strategy_type setupu: swing → `--topic swing`; **scalp XAU (`strategy_type: "scalp_xau"`) → WYŁĄCZNIE `--topic scalp_xau` — temat "SCALPING XAU" (`message_thread_id: 2851`, `.env: TELEGRAM_THREAD_SCALP_XAU=2851`), nigdy temat `xau`**; intraday day trading → temat instrumentu z mapy.
 
 **Daily/weekly summary routing rule (strict):** any daily-close output (`trw2-daily-close`) and any weekly-review output (`trw2-weekly-review`'s Duty B) — the EOD/weekly card, and any text recap, preview, or narrative about how the day/week went — always goes to `wyniki` (**WYNIKI/STATYSTYKI** topic), never to `krypto`/`xau`/`waluty`/`indeksy`. This applies even during the Sunday weekly-review run, which also does a crypto deep-analysis duty (Duty A) — Duty A's Telegram send to `krypto` is allowed ONLY for genuinely new tradeable setups (with entry/SL/TP), never for a "weekly preview" summary/outlook text. If Duty A has no new setup to publish, it sends nothing to `krypto` that run — the week/day narrative belongs exclusively in the `wyniki`-routed card.
 
@@ -169,7 +178,7 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
 4. Read `context/strategy_reference.md` → `PROJECT_CONTEXT.md` for strategy/indicators/assets.
 5. **Krok 0 — Makro/news/DXY/VIX review** (§6) — execute fully before any chart analysis.
 6. Establish HTF context for the full watchlist (4H/1D, +1W on Sunday) — **wyłącznie na potrzeby SWING ROUTING (krok 9, §7c, §7d) i narracji makro.** Zakaz używania tego odczytu w logice TOP 3/XAU day trading (2026-07-18).
-6.5. **M5 Scalp "na dzień dobry" [optional, session-open only]** — run this block only when ALL 5 prerequisites pass; otherwise skip silently (no journal entry needed for a clean skip).
+6.5. **M5 Scalp XAU "na dzień dobry" [optional; od 2026-07-18 wykonywany przez RÓWNOLEGŁE rutyny `trw2-scalp-xau-asia/london/ny` (§2), nie jako krok rutyn sesyjnych]** — instrument: **WYŁĄCZNIE XAUUSD** (żadnej watchlisty, żadnych innych instrumentów). Każda rutyna scalp wykonuje 4 przebiegi co 30 min w swoim oknie 2h; każdy przebieg uruchamia ten blok tylko gdy WSZYSTKIE prerekwizyty P1–P5 przechodzą; inaczej skip silently (no journal entry needed for a clean skip). Rutyny sesyjne (`trw2-asia/london/newyork`) NIE wykonują już tego bloku.
    **Wyłączenie z gwarancji/degradacji (2026-07-18):** moduł scalp "na dzień dobry" jest WYŁĄCZONY z mechanizmu gwarancji i degradacji confidence (§7 krok 8c Krok 5 / §1.9) — pozostaje w pełni warunkowy: [optional, session-open only], próg confidence 65 (nie 60), poniżej → STOP bez drabinki degradacji, otherwise skip silently. Gwarancja liczby setupów (zawsze 3 TOP 3 + 1 XAU) dotyczy wyłącznie tych dwóch kategorii — scalp jest bonusem ponad tę gwarancję, nigdy jej częścią.
    **Timeframe structure for this module only** (does NOT affect day-trading H1/M15/M5 or swing D1/H4 in other sections):
    - **M15** = short-term bias / context frame — replaces former D1+H4+H1 alignment. Check direction of the last M15 impulse (BOS/CHoCH) and price relation to the reference range.
@@ -178,15 +187,15 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
    - **M30** = optional bonus filter only — if a fresh M30 swing high/low or confirmed OB is visible, add +3–5 confidence pts. Absence of M30 structure does NOT block the trade.
 
    **Prerequisites:**
-   - **P1 — session window:** London 08:30–09:30 UK **or** NY **14:25–15:15 UK** only (extended from 15:00 — late-window entry allowed 15:00–15:15 UK jeśli trigger identyfikowany przed 15:00; szczegóły w E7 pkt 10). Asia does not qualify.
+   - **P1 — session window (2026-07-18, okna 2h równoległych rutyn):** Asia **01:00–03:00 UK** / London **08:00–10:00 UK** / NY **13:30–15:30 UK**. Nowe entry dozwolone do 30 min przed hard close okna (Asia do 02:30, London do 09:30, NY do 15:00); ostatnie 30 min okna = wyłącznie zarządzanie/zamknięcie. (Zastępuje poprzednie okna 08:30–09:30 / 14:25–15:15; Asia od 2026-07-18 kwalifikuje się.)
    - **P2 — news buffer:** no high-impact event within ±25 min of now (same rule as §6).
    - **P3 — M15 bias confirmed:** M15 BOS/CHoCH after the session-open sweep, pointing in the sweep-reversal direction; `macro_conflict = false` from §6. (D1/H4/H1 alignment is NOT required for scalps — they operate on a 30–60 min horizon where HTF bias is too slow and often stale.)
    - **P4 — open risk headroom:** triggered carry-over risk (from step 2) < 1.0% equity — leaves room for the 0.5% scalp unit (total cap 1.5%).
-   - **P5 — slot free:** no entry in `memory/active_setups.json` with `lifecycle: "scalp"` from this same session window.
+   - **P5 — slot free:** no entry in `memory/active_setups.json` with `strategy_type: "scalp_xau"` from this same session window.
 
-   **Execution sequence (only if P1–P5 all pass):**
-     1. `chart_set_symbol` → primary instrument (XAUUSD on London; top watchlist pick on NY). Pull reference range: London → Asian high/low (`data_get_ohlcv` M5 window 01:00–08:00 UK); NY → London high/low (M5 window 08:00–14:00 UK).
-     2. **Sweep check (M15/M5):** did any bar after 08:15/14:15 UK breach the reference range high or low? NO → stop. YES → continue.
+   **Execution sequence (only if P1–P5 all pass; każdy z 4 przebiegów okna):**
+     1. `chart_set_symbol("XAUUSD")` — **zawsze i wyłącznie XAUUSD**. Pull reference range: Asia → previous NY session high/low (`data_get_ohlcv` M5 window 13:00–21:00 UK poprzedniego dnia); London → Asian high/low (M5 window 00:00–08:00 UK); NY → London high/low (M5 window 08:00–13:00 UK).
+     2. **Sweep check (M15/M5):** did any bar after the window open (01:00/08:00/13:30 UK) breach the reference range high or low? NO → stop. YES → continue.
      3. **M15 BOS/CHoCH:** after the sweep, is there a confirmed M15 structural break back in the reversal direction? NO → stop. YES → continue. (`chart_set_timeframe("15")`, `data_get_ohlcv count:30`)
      4. **M5 structure:** `chart_set_timeframe("5")`. Find OB or FVG M5 on the pullback. Pullback depth ≤ 50% of the post-CHoCH impulse? NO → stop (structure too weak). YES → continue.
      5. **M3 trigger (nie wcześniej niż T+5 min od otwarcia okna):** `chart_set_timeframe("3")`. Wait for / confirm BOS on M3 or engulfing candle inside the M5 OB/FVG zone. **Fallback:** jeśli brak czystego M3 sygnału po 3 świecach M3 od uformowania OB/FVG → użyj M5 close jako triggera fallback (SL za M5 extreme + 0.1% bufor zamiast M3 extreme); zapisz `trigger_type: "m5_fallback"` w signals_log. Brak obu triggerów → stop.
@@ -195,11 +204,11 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
      8. Score confidence (§8). Minimum threshold: **65**. Confidence < 65 → stop. **Routing do swing (2026-07-17):** NIE przez wysokość confidence — przez `structural_significance`. Oceń czy wykryto strukturalne cechy swing (D1/H4 BOS, harmoniczny pattern H4/D1, RSI H4 <25, sweep D1 z rejection) — jeśli tak → `structural_significance: true` → route to §7d swing, nie do scalp execution. Dobry scalp z wysokim confidence (np. 78) pozostaje scalpem jeśli `structural_significance: false`. Scalp moduł domyślnie ustawia `structural_significance: false` (D1/H4 nie są tu sprawdzane).
      9. Signal Risk Engine (§9): `setup_type` forced = `"A"` (sweep-reversal only — continuation/Setup B is banned for scalps). `risk_pct = 0.5` (uniform from 2026-07-17).
      10. Screenshot per §11 + 2026-07-07 reset rule: switch to M5 for the screenshot (`chart_set_timeframe("5")`), `ui_keyboard Alt+R` → `draw_shape` ENTRY box + SL + TP1 + TP2 → `chart_set_visible_range` (sweep bar → last OHLCV bar, real timestamps only) → `capture_screenshot`.
-     11. Append to `journal/signals_log.jsonl` with extra fields: `"lifecycle": "scalp"`, `"session_close_by": "12:00 UK"` (London) or `"18:00 UK"` (NY), `"risk_pct": 0.5`, `"trigger_type": "m3"|"m5_fallback"`, `"structural_significance": false`, `"late_window_entry": true|false`.
-     12. Add entry to `memory/active_setups.json` with same fields as above.
-     13. Send via Bash CLI → instrument's Telegram topic. Caption must include the four v2 fields + tag `"⚡ SCALP · zamknięcie do [HH:MM] UK"`.
-   - **Session-close enforcement (carry-over runs):** any entry with `lifecycle: "scalp"` whose `session_close_by` has passed must be resolved at the current price in the next routine's bar-walk — treat it as a time-expired close regardless of P&L. Log to `results_log.jsonl` with `exit_reason: "scalp_session_deadline"`. Never carry a scalp through a session boundary.
-   - **Monitoring aktywnych scalpów (2026-07-17):** jeśli aktywny scalp jest w `active_setups.json` i przerwa od `last_checked_at` > 10 min → wykonaj lightweight check: `quote_get` → porównaj z SL, TP1, `session_close_by`. Jeśli hit → rozwiąż i zaloguj. Nie czekaj na pełną rutynę do wykrycia zakończenia scalpa.
+     11. Append to `journal/signals_log.jsonl` with extra fields: `"lifecycle": "scalp"`, `"strategy_type": "scalp_xau"` (odrębne od `"xau_daytrading"`), `"session_close_by"` = hard close okna: **"03:00 UK"** (Asia) / **"10:00 UK"** (London) / **"15:30 UK"** (NY), `"risk_pct": 0.5`, `"trigger_type": "m3"|"m5_fallback"`, `"structural_significance": false`, `"late_window_entry": true|false`.
+     12. Add entry to `memory/active_setups.json` with same fields as above (`strategy_type: "scalp_xau"`).
+     13. Send via Bash CLI → **WYŁĄCZNIE temat "SCALPING XAU"** (`--topic scalp_xau`, `message_thread_id: 2851`, chat `-1003969670552`, `.env: TELEGRAM_THREAD_SCALP_XAU=2851`) — NIGDY do tematu `xau` ani żadnego innego, mimo że instrument to XAU. Caption must include the four v2 fields + tag `"⚡ SCALP XAU · zamknięcie do [HH:MM] UK"`.
+   - **Session-close enforcement:** any entry with `strategy_type: "scalp_xau"` whose `session_close_by` (hard close okna 2h: 03:00/10:00/15:30 UK) has passed must be resolved at the current price at the next check — time-expired close regardless of P&L, `exit_reason: "scalp_xau_session_deadline"` in `results_log.jsonl`. Ostatni przebieg okna (02:30/09:30/15:00) + kolejne rutyny egzekwują zamknięcie. Never carry a scalp through the window boundary — nie czeka do end-of-day (§9a), okno 2h jest ostrzejsze.
+   - **Monitoring aktywnych scalpów:** jeśli aktywny scalp_xau jest w `active_setups.json` i przerwa od `last_checked_at` > 10 min → lightweight check: `quote_get` → porównaj z SL, TP1, `session_close_by`. Jeśli hit → rozwiąż i zaloguj. Kolejne przebiegi tej samej rutyny scalp (co 30 min) wykonują pełny bar-walk M5 swojego slotu.
 7. **XAU STREAM (zawsze pierwszy, osobny od reszty watchlisty):**
    a. `chart_set_symbol("XAUUSD")` → analiza WYŁĄCZNIE H1 (bias struktury/BOS/CHoCH; M30 fallback gdy H1 bez jasnych kotwic), M15 (impuls + OTE), M5 (trigger wejścia). **ZAKAZ KATEGORYCZNY D1/H4 w logice XAU day trading (2026-07-18)** — nie jako tło, nie jako bias makro; D1/H4 wolno czytać wyłącznie w ramach SWING ROUTING check (§7 krok 9 / §7c / §7d), nigdy dla setupu intraday.
    b. Metoda 1: formalny confidence §8 + OTE (0.618–0.786, lub 0.5 przy wysokim wolumenie §7b E3).
@@ -365,17 +374,17 @@ All scenarios: `one_shot = true`, priority A > B > C, `applied = true` blocks re
 
 ---
 
-### M5 Scalp — "na dzień dobry" (§7 krok 6.5)
+### M5 Scalp XAU — "na dzień dobry" (§7 krok 6.5; od 2026-07-18 WYŁĄCZNIE XAUUSD, równoległe rutyny `trw2-scalp-xau-*`)
 
 **E6. Prerequisites — all 5 required:**
 
 | # | Condition | Value |
 |---|---|---|
-| P1 | Session window | London **08:30–09:30 UK** or NY **14:25–15:15 UK** (extended from 15:00, 2026-07-17) |
+| P1 | Session window | Asia **01:00–03:00 UK** / London **08:00–10:00 UK** / NY **13:30–15:30 UK** (okna 2h równoległych rutyn, 2026-07-18; nowe entry do 30 min przed hard close) |
 | P2 | News buffer | No high-impact event ±25 min of now |
 | P3 | M15 bias confirmed | M15 BOS/CHoCH after sweep in reversal direction; `macro_conflict = false` from §6. D1/H4/H1 NIE są sprawdzane — nie wpływają na confidence ani nie blokują wejścia. |
 | P4 | Risk headroom | Triggered carry-over risk < 1.0% equity |
-| P5 | Slot free | No `lifecycle: "scalp"` in `active_setups.json` for this session window |
+| P5 | Slot free | No `strategy_type: "scalp_xau"` in `active_setups.json` for this session window |
 
 Total risk cap: carry-over risk + this scalp ≤ 1.5% equity (0.5% scalp + max 1.0% carry-over).
 
@@ -383,7 +392,7 @@ Total risk cap: carry-over risk + this scalp ≤ 1.5% equity (0.5% scalp + max 1
 
 D1/H4/H1 NIE są sprawdzane, NIE wpływają na confidence (bonus ani malus), NIE są warunkiem. Scalp operuje w horyzoncie 30–60 min gdzie wyższe ramy nie mają praktycznego znaczenia predykcyjnego. Ta zasada jest nienaruszalna.
 
-1. **Sweep** of reference range confirmed on M15 or M5 (London → Asian H/L; NY → London H/L). No sweep → STOP.
+1. **Sweep** of reference range confirmed on M15 or M5 — instrument zawsze XAUUSD (Asia → previous NY H/L; London → Asian H/L; NY → London H/L). No sweep → STOP.
 2. **M15 BOS/CHoCH** after sweep, in the reversal direction. No M15 structural break → STOP.
 3. **M5 OB/FVG** on pullback; depth ≤ 50% of post-CHoCH impulse. Too deep → STOP.
 4. **M3 trigger (primary) — nie wcześniej niż T+5 min od otwarcia okna sesji:** BOS on M3 or engulfing candle inside M5 OB/FVG zone. **Fallback trigger:** jeśli M3 nie dał czystego sygnału w ciągu 3 świec M3 po uformowaniu OB/FVG M5 → użyj M5 close jako triggera fallback; SL za M5 candle extreme (nie za M3 candle extreme) + 0.1% bufor; zapisz `trigger_type: "m5_fallback"` w signals_log.jsonl. Brak M3 trigger i brak M5 close w strefie → STOP.
@@ -392,7 +401,7 @@ D1/H4/H1 NIE są sprawdzane, NIE wpływają na confidence (bonus ani malus), NIE
 7. **Routing do swing — przez structural_significance, NIE przez confidence (updated 2026-07-17):** confidence scalpa ≥65 i dowolnie wysokie NIE triggeruje automatycznego routingu do swing. Routing do swing decyduje WYŁĄCZNIE pole `structural_significance: true`, które jest ustawiane gdy wykryto co najmniej jeden z: D1/H4 BOS w kierunku setupu, harmoniczny pattern H4/D1, RSI H4 <25, sweep D1 z rejection. Jeśli `structural_significance: true` → routine do swing (§7d), NIE scalp. Jeśli `structural_significance: false` → pozostaje scalpem niezależnie od confidence. Domyślna wartość: `false` (scalp moduł nie sprawdza D1/H4 — structural_significance oceniane przez XAU stream lub TOP 3 watchlist, nie tu).
 8. **Setup type forced = A** (sweep-reversal only). Setup B banned for scalps.
 9. **risk_pct = 0.5** (uniform from 2026-07-17).
-10. **Deadline** enforced via `session_close_by` = 12:00 UK (London) / 18:00 UK (NY). **Late-window entry (NY only):** jeśli entry zidentyfikowane przed 15:00 UK ale M3/M5 trigger potwierdza się w oknie 15:00–15:15 UK → dopuszczalne wykonanie; zapisz `late_window_entry: true` w signals_log.jsonl. Po 15:15 UK NY → stop, bez wyjątków.
+10. **Deadline (2026-07-18)** enforced via `session_close_by` = **hard close okna 2h**: 03:00 UK (Asia) / 10:00 UK (London) / 15:30 UK (NY) — `exit_reason: "scalp_xau_session_deadline"`, niezależnie od P&L. **Late-window entry:** jeśli entry zidentyfikowane przed ostatnim przebiegiem okna, ale M3/M5 trigger potwierdza się w ostatnich 30 min okna (02:30–03:00 / 09:30–10:00 / 15:00–15:30 UK) → dopuszczalne wykonanie; zapisz `late_window_entry: true`. Po hard close → stop, bez wyjątków.
 11. **Monitoring aktywnych scalpów między rutynami:** jeśli aktywny scalp (`lifecycle: "scalp"`) jest w `active_setups.json` i przerwa od `last_checked_at` > 10 min → uruchom lekki monitoring check: `quote_get` dla instrumentu → porównaj live price z SL, TP1, i `session_close_by`. Jeśli którykolwiek osiągnięty → rozwiąż setup i zaloguj wynik bez czekania na pełny run. Jeśli żaden nie osiągnięty → zaloguj `last_checked_at` i kontynuuj.
 
 ---
@@ -677,7 +686,7 @@ Każdy setup ze statusem PENDING (TOP 3, XAU, day trading — opublikowany, nie 
 | Lifecycle | Expiry |
 |---|---|
 | Day trading (TOP 3 / XAU intraday) | **1 dzień handlowy** — do daily close (22:00 UK) dnia publikacji |
-| Scalp | koniec okna scalp (`session_close_by`, §7 krok 6.5 — bez zmian, ostrzejsze) |
+| Scalp XAU (`strategy_type: "scalp_xau"`) | **hard close okna 2h** (`session_close_by`: 03:00 / 10:00 / 15:30 UK, §7 krok 6.5) — ostrzejsze niż 1 dzień; `exit_reason: "scalp_xau_session_deadline"` |
 | Swing (§7c/§7d) | **3 dni handlowe** — zgodnie z naturą ramy D1/H4 |
 | **Crypto weekend (2026-07-18)** | Setupy opublikowane w sobotę/niedzielę wygasają **w poniedziałek o 22:00 UK** (najbliższa rutyna `trw2-daily-close`), max ~44h okna — brak kotwicy "daily close" w weekend. Dodatkowo: przy starcie każdej rutyny weekendowej sprawdź PENDING **starsze niż poprzedni weekend (>1 tydzień)** → `expired` natychmiast, niezależnie od poniedziałkowej kotwicy. |
 
@@ -760,7 +769,7 @@ Mandatory on every new published setup (2026-07-06): `setup_type` ("A" = sweep-r
 **Dodatkowe pola obowiązkowe od 2026-07-17:**
 - Setup A: `confidence_components: { sweep_atr, choch_ratio, ote_deviation_pts, trigger_type }` — audyt scoringu (§7b E2, §8).
 - Setup B: `trend_exhaustion: true|false`, `exhaustion_atr_ratio: [liczba]` — filtr wyczerpania (§7b E2).
-- Scalp: `trigger_type: "m3"|"m5_fallback"`, `structural_significance: false`, `late_window_entry: true|false` (§7b E7, §7 krok 6.5).
+- Scalp XAU: `strategy_type: "scalp_xau"` (odrębne od `"xau_daytrading"`), `trigger_type: "m3"|"m5_fallback"`, `structural_significance: false`, `late_window_entry: true|false`, `session_close_by: "03:00|10:00|15:30 UK"` (§7b E7, §7 krok 6.5, 2026-07-18).
 
 ### `journal/results_log.jsonl` fields
 `setup_id, final_status, win, rr_realized, session_result, macro_context, execution_notes, lesson_learned, risk_grade, followed_plan, setup_quality_after_close, was_news_factor, was_macro_conflict_correct, improvement_note, updated_at`

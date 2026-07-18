@@ -26,4 +26,7 @@ export const TELEGRAM_TOPIC_THREADS = {
   // Swing signals (strategy_type/lifecycle = "swing") go to the dedicated "SWINGI H4/D1" topic
   // (thread 9), never to the instrument topics used by TOP3/XAU day-trading signals (rule 2026-07-18).
   swing: process.env.TELEGRAM_THREAD_SWING || '9',
+  // M5 Scalp XAU "na dzień dobry" (strategy_type = "scalp_xau") goes exclusively to the
+  // "SCALPING XAU" topic (thread 2851) — never to the xau day-trading topic (rule 2026-07-18).
+  scalp_xau: process.env.TELEGRAM_THREAD_SCALP_XAU || '2851',
 };
