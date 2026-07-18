@@ -1,29 +1,3 @@
-<!--
-PRE-SESSION ANALYSIS CARD — APPROVED by Magic 2026-07-06 (reference screenshot: XAUUSD 06.07 00:20 UTC).
-Locked layout. Published BEFORE EVERY SESSION for the primary instrument (weekdays: XAUUSD always, to `xau` topic;
-weekend crypto: BTCUSDT as primary, to `krypto` topic). Signal cards (context/commercial_card_template.html)
-are sent SEPARATELY after this, only for setups that clear the Signal Risk Engine.
-
-USAGE: fill placeholders, duplicate repeating rows as needed, then:
-  node src/cli/index.js card render - -html "<filled>.html" - -out "<out>.png" - -width 1100
-(remove space in --html/--out; written with space here only so this comment can't break argument parsing)
-
-PLACEHOLDERS: <LOGO_BASE64> <DATE_TIME_UTC> <TICKER> <PRICE> <BIAS_BADGE=LONG BIAS/SHORT BIAS/NEUTRAL>
-<BIAS_BG>/<BIAS_TEXT> (long: #123a12/#4ade80, short: #3a1212/#f87171, neutral: #3a2f12/#f5c842)
-PREV_SETUP_HTML, CONTEXT_HTML, tiles, session plan bullets, scenarios A/B/C+%, BSL/SSL rows, FVG rows,
-FIB entry/target, transaction levels rows (✓ where hit), RR tiles.
-
-⚠️ MANDATORY EXTRA SECTIONS (added 2026-07-17 after this template was found missing them — see ROUTINES_V2 §7 step 14a):
-this file's built-in panels do NOT cover the full §7 step 14a section list. Every fill of this template MUST also
-add, as extra full-width <div class="panel"> blocks (see feedback_tf_discipline_and_conditional_sections memory
-for a worked example):
-  - MAKRO block (NO-ENTRY windows explicit, even if empty) — ALWAYS present.
-  - TOP 3 WATCHLIST table (instrument | topic | conf | fib | status) — ALWAYS present, even when 0/3 (state why).
-  - FRESHNESS STATUS one-liner (Check 1 → Check 2 counts) — ALWAYS present.
-  - SWING panel — CONDITIONAL: only add if §7c/§7d actually produced a qualifying result this run. If nothing
-    qualified, omit the panel entirely — do NOT add an empty "brak" placeholder.
-  - SCALP section — CONDITIONAL: only if lifecycle:"scalp" is active this run (card_generation_prompt_v2.md).
--->
 <!DOCTYPE html>
 <html>
 <head>
@@ -39,7 +13,7 @@ body { background: #0a0a0c; color: #d6d6d2; font-family: 'Segoe UI', sans-serif;
 .header-right { display: flex; align-items: center; gap: 12px; }
 .ticker { color: #ffffff; font-size: 24px; font-weight: 800; }
 .price { color: #f5c842; font-size: 22px; font-weight: 700; }
-.bias-badge { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 800; background: <BIAS_BG>; color: <BIAS_TEXT>; border: 1px solid <BIAS_TEXT>; }
+.bias-badge { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 800; background: #123a12; color: #4ade80; border: 1px solid #4ade80; }
 .cols { display: grid; grid-template-columns: 1fr 1.06fr; gap: 14px; }
 .panel { background: #121317; border: 1px solid #23242a; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; }
 .panel-gold { border-color: #6b5a1e; background: #16140d; }
@@ -94,16 +68,15 @@ body { background: #0a0a0c; color: #d6d6d2; font-family: 'Segoe UI', sans-serif;
 
 <div class="header">
   <div class="header-left">
-    <img class="logo" src="data:image/jpeg;base64,<LOGO_BASE64>" alt="TRW">
     <div>
       <div class="brand">TRADING ROOM WORKSHOP</div>
-      <div class="brand-sub"><DATE_TIME_UTC> · ICT/SMC · MTF D1/H4/H1/M15</div>
+      <div class="brand-sub">2026-07-07 17:15 UTC · ICT/SMC · MTF D1/H4/H1/M15 · NY2</div>
     </div>
   </div>
   <div class="header-right">
-    <span class="ticker"><TICKER></span>
-    <span class="price"><PRICE></span>
-    <span class="bias-badge"><BIAS_BADGE></span>
+    <span class="ticker">XAUUSD</span>
+    <span class="price">4145.69</span>
+    <span class="bias-badge">LONG BIAS</span>
   </div>
 </div>
 
@@ -112,40 +85,47 @@ body { background: #0a0a0c; color: #d6d6d2; font-family: 'Segoe UI', sans-serif;
 
   <div class="panel panel-gold">
     <div class="p-title">🔷 Poprzedni setup</div>
-    <div class="p-body"><PREV_SETUP_HTML></div>
+    <div class="p-body"><b>legacy-071 LONG</b> aktywny/triggered, siódmą kolejną rutynę — entry <b>4146.73–4163.06</b> (dotknięta 11:35 UTC ✓), SL <b>4112</b> (podniesiony ze scenariusza A o 11:00 UTC, było 4098), TP1 4221 / TP2 4259. Cena wybiła się do 4180.52 (~39% drogi do TP1), po czym wróciła i konsoliduje się tuż poniżej własnej strefy entry. Bar-walk M5 16:15–17:00 UTC: high 4147.31 / low 4141.12 — brak dotknięcia SL/TP, brak nowego triggera scenariusza C.</div>
   </div>
 
   <div class="panel panel-gold">
     <div class="p-title">⚡ Kontekst rynkowy</div>
-    <div class="p-body"><CONTEXT_HTML></div>
+    <div class="p-body">Krótka, szeroka fala risk-off 13:00–14:00 UTC (gold, NAS100, SP500, DJ30, GER40 razem w dół, brak jasnego katalizatora) częściowo się cofnęła — gold konsoliduje w rejonie 4140s przed środowymi minutkami FOMC. <b>DXY 100.97</b> (płasko), <b>VIX 15.68</b> (niskie, risk-on). Brak eventów high-impact dziś (ForexFactory: 0; Investing.com: 0 3-star dla USD/GBP/EUR/JPY).</div>
   </div>
 
   <div class="tiles">
-    <div class="tile"><div class="tile-lbl">Bias D1</div><div class="tile-val green"><TILE_BIAS_D1></div></div>
-    <div class="tile"><div class="tile-lbl">Struktura H4</div><div class="tile-val"><TILE_H4></div></div>
-    <div class="tile"><div class="tile-lbl">Faza</div><div class="tile-val"><TILE_FAZA></div></div>
-    <div class="tile"><div class="tile-lbl">Prawdop.</div><div class="tile-val gold"><TILE_PROB></div></div>
+    <div class="tile"><div class="tile-lbl">Bias D1</div><div class="tile-val green">BYCZY +3.1%/6D</div></div>
+    <div class="tile"><div class="tile-lbl">Struktura H4</div><div class="tile-val">Konsolidacja pod 4163</div></div>
+    <div class="tile"><div class="tile-lbl">Faza</div><div class="tile-val">Retest po flushu</div></div>
+    <div class="tile"><div class="tile-lbl">Prawdop.</div><div class="tile-val gold">Brak nowego</div></div>
   </div>
 
   <div class="panel">
     <div class="p-title">📋 Plan sesyjny</div>
     <div class="sess-grid">
       <div class="sess-box">
-        <div class="sess-title"><SESS1_TITLE></div>
-        <ul><SESS1_BULLETS_LI></ul>
+        <div class="sess-title">NY2 (18:00 UK, obecnie)</div>
+        <ul>
+          <li>Monitoring reklamowania strefy entry 4146.73+ lub dalszego zejścia do OB 4100–4122</li>
+          <li>legacy-071 jedyną aktywną pozycją XAU (2. slot wolny)</li>
+          <li>Pełny skan watchlisty: 0 nowych kandydatów ≥70% (NAS100 M15 BOS po sweep 28974.3, ale D1/4H nadal niedźwiedzie — HTF misalignment)</li>
+        </ul>
       </div>
       <div class="sess-box">
-        <div class="sess-title"><SESS2_TITLE></div>
-        <ul><SESS2_BULLETS_LI></ul>
+        <div class="sess-title">Zamknięcie dnia (22:00 UK →)</div>
+        <ul>
+          <li>Bar-walk legacy-071 przed dziennym podsumowaniem</li>
+          <li>Katalizator tygodnia: minutki FOMC (środa)</li>
+        </ul>
       </div>
     </div>
   </div>
 
   <div class="panel">
     <div class="p-title">🗂 Scenariusze</div>
-    <div class="scen scen-a"><div class="scen-letter">A</div><div class="scen-text"><SCEN_A_TEXT></div><div class="scen-prob"><SCEN_A_PROB></div></div>
-    <div class="scen scen-b"><div class="scen-letter">B</div><div class="scen-text"><SCEN_B_TEXT></div><div class="scen-prob"><SCEN_B_PROB></div></div>
-    <div class="scen scen-c"><div class="scen-letter">C</div><div class="scen-text"><SCEN_C_TEXT></div><div class="scen-prob"><SCEN_C_PROB></div></div>
+    <div class="scen scen-a"><div class="scen-letter">A</div><div class="scen-text">Reklamowanie strefy entry 4146.73+ i kontynuacja do TP1 4221 (BOS klaster / OB opór)</div><div class="scen-prob">40%</div></div>
+    <div class="scen scen-b"><div class="scen-letter">B</div><div class="scen-text">Dalsza konsolidacja 4140–4155 do czasu minutek FOMC (środa)</div><div class="scen-prob">40%</div></div>
+    <div class="scen scen-c"><div class="scen-letter">C</div><div class="scen-text">Głębsza korekta poniżej 4116 (H1 close) → naruszenie OB, flaga manualnego przeglądu, SL 4112 pod presją</div><div class="scen-prob">20%</div></div>
   </div>
 
 </div>
@@ -154,33 +134,41 @@ body { background: #0a0a0c; color: #d6d6d2; font-family: 'Segoe UI', sans-serif;
   <div class="panel">
     <div class="p-title">💧 Mapa płynności</div>
     <div class="liq-head bsl">▲ BSL (Buy Side Liquidity)</div>
-    <BSL_ROWS>
+    <div class="liq-row"><span class="tf-tag">D1</span><span class="liq-lbl">ATH tygodnia / EQH</span><span class="liq-price red">4 202.71</span></div>
+    <div class="liq-row"><span class="tf-tag">H1</span><span class="liq-lbl">OB opór / TP1 klaster</span><span class="liq-price red">4 205.55–4 221.37</span></div>
+    <div class="liq-row"><span class="tf-tag">H1</span><span class="liq-lbl">OB opór wtórny / TP2 klaster</span><span class="liq-price red">4 247.62–4 257.98</span></div>
     <div class="liq-head ssl" style="margin-top:12px;">▼ SSL (Sell Side Liquidity)</div>
-    <SSL_ROWS>
+    <div class="liq-row"><span class="tf-tag">D1</span><span class="liq-lbl">Swing low sekwencji wzrostowej</span><span class="liq-price green">3 942.10</span></div>
+    <div class="liq-row"><span class="tf-tag">H1</span><span class="liq-lbl">Broniony OB / CHoCH low (scenariusz C)</span><span class="liq-price green">4 116.70</span></div>
+    <div class="liq-row"><span class="tf-tag">M15</span><span class="liq-lbl">Bieżący low sesji (16:45 UTC)</span><span class="liq-price white">4 141.12</span></div>
   </div>
 
   <div class="panel">
     <div class="p-title">✳ FVG aktywne</div>
-    <FVG_ROWS>
+    <div class="liq-row"><span class="tf-tag">H1</span><span class="fvg-sq green"></span><span class="liq-lbl">FVG opór (nad spotem)</span><span class="liq-price white">4 155.93</span></div>
+    <div class="liq-row"><span class="tf-tag">H1</span><span class="fvg-sq green"></span><span class="liq-lbl">FVG wsparcie (głębszy)</span><span class="liq-price white">4 090.89</span></div>
   </div>
 
   <div class="panel">
     <div class="p-title">📐 Fibonacci</div>
     <div class="fib-grid">
-      <div class="fib-box"><div class="fib-lbl">Strefa Entry</div><div class="fib-val"><FIB_ENTRY></div></div>
-      <div class="fib-box"><div class="fib-lbl">Target</div><div class="fib-val"><FIB_TARGET></div></div>
+      <div class="fib-box"><div class="fib-lbl">Strefa Entry (0.618)</div><div class="fib-val">4 136.70</div></div>
+      <div class="fib-box"><div class="fib-lbl">Target (TP1)</div><div class="fib-val">4 221</div></div>
     </div>
   </div>
 
   <div class="panel">
     <div class="p-title">🎯 Poziomy transakcji</div>
-    <LEVEL_ROWS>
+    <div class="lvl-row"><span class="lvl-dot dot-entry"></span><div class="lvl-main"><div class="lvl-name">Entry (legacy-071) ✓ triggered</div><div class="lvl-note">bullish OB + fib 0.618 confluence, dotknięta 11:35 UTC</div></div><span class="lvl-price">4 146.73–4 163.06</span></div>
+    <div class="lvl-row"><span class="lvl-dot dot-sl"></span><div class="lvl-main"><div class="lvl-name">SL ↑ scen. A</div><div class="lvl-note">podniesiony ze scenariusza A, 11:00 UTC (było 4098)</div></div><span class="lvl-price">4 112</span></div>
+    <div class="lvl-row"><span class="lvl-dot dot-tp"></span><div class="lvl-main"><div class="lvl-name">TP1</div><div class="lvl-note">BOS klaster / OB opór</div></div><span class="lvl-price">4 221</span></div>
+    <div class="lvl-row"><span class="lvl-dot dot-tp"></span><div class="lvl-main"><div class="lvl-name">TP2</div><div class="lvl-note">OB opór wtórny</div></div><span class="lvl-price">4 259</span></div>
   </div>
 
   <div class="rr-grid">
-    <div class="rr-tile"><div class="rr-lbl">TP1</div><div class="rr-val"><RR_TP1></div></div>
-    <div class="rr-tile"><div class="rr-lbl">TP2</div><div class="rr-val"><RR_TP2></div></div>
-    <div class="rr-tile"><div class="rr-lbl">TP3</div><div class="rr-val"><RR_TP3></div></div>
+    <div class="rr-tile"><div class="rr-lbl">TP1</div><div class="rr-val">+1.54R</div></div>
+    <div class="rr-tile"><div class="rr-lbl">TP2</div><div class="rr-val">+2.43R</div></div>
+    <div class="rr-tile"><div class="rr-lbl">TP3</div><div class="rr-val">n/a</div></div>
   </div>
 
 </div>
@@ -190,14 +178,3 @@ body { background: #0a0a0c; color: #d6d6d2; font-family: 'Segoe UI', sans-serif;
 
 </body>
 </html>
-<!--
-ROW SNIPPETS (copy per item):
-BSL/SSL row:
-<div class="liq-row"><span class="tf-tag">D1</span><span class="liq-lbl">CDH/CWH — opis</span><span class="liq-price red">4 201.50</span></div>
-(SSL rows: class "white" or "green" for price)
-FVG row:
-<div class="liq-row"><span class="tf-tag">H1</span><span class="fvg-sq green"></span><span class="liq-lbl">FVG wsparcie (opis)</span><span class="liq-price white">4 155.33–4 176.33</span></div>
-Level row:
-<div class="lvl-row"><span class="lvl-dot dot-entry"></span><div class="lvl-main"><div class="lvl-name">Entry</div><div class="lvl-note">opis</div></div><span class="lvl-price">4 155–4 165</span></div>
-(dots: dot-entry gold / dot-sl red / dot-tp teal; add ✓ in lvl-name or lvl-price when hit)
--->

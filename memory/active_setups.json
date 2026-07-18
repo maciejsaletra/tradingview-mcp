@@ -1,8 +1,8 @@
 {
   "_meta": {
     "schema_version": "2.2",
-    "last_updated": "2026-07-18T06:45:00Z",
-    "note": "RETROACTIVE CLEANUP 2026-07-18 (manual session with Magic, new §9a day-based PENDING expiry rule): sig-088 XAUUSD SHORT (Setup B, published trw2-newyork 2026-07-16 15:09 UK) marked EXPIRED and removed — reason: 'expired — reguła wprowadzona retroaktywnie 2026-07-18, setup przekroczył limit 1 dnia'. Bar-walk precondition satisfied: 8 documented checks (07-16 ny2 through 07-18 crypto-sat-am) all confirmed entry zone 4042.41-4050.74 never touched (max high 4032.36 on 07-17 16:00 UTC, ~10pts short); gold closed for the weekend since Friday 21:05 UTC (last 4017.315). Full expiry record appended to journal/results_log.jsonl (final_status: expired, rr_realized: 0 — no portfolio impact). Carried-over context for Monday Asia routine: (1) D1 bullish-rejection flag from Friday 07-17 (open 3979.265, low 3959.8, close 4017.315, close-position 89.8%, wick-rejection 30.4% — below the >60% §7d threshold in strict reading) remains unresolved — re-evaluate at Monday reopen for a formal swing candidate; (2) H1 CHoCH bullish confirmed ~4007-4009 (ICT Pro choch@4008.8 + LuxAlgo CHoCH@4007.3) with price holding above since — Monday's fresh XAU analysis starts from this bullish H1 structure, NOT from the expired SHORT thesis; (3) potential LONG pullback OTE zone noted 07-17: 3973.5-3984.3 (0.618-0.786 of 3959.8→4023.835) if bullish structure holds. NOTE FOR MONDAY: new rules active since 2026-07-18 — §9a expiry, 3+1 guarantee with confidence degradation, categorical D1/H4 ban for TOP3/XAU day trading, trailing SL on runner post-TP1 (§16).",
+    "last_updated": "2026-07-18T13:20:00Z",
+    "note": "trw2-crypto-sat-mid (14:00 UK): sig-089 BTCUSDT LONG added -- BTC weekend guarantee slot, scored standalone confidence 80 (no degradation ladder needed). Entered on its own merit: H1 sweep 62537.56 + confirmed CHoCH 64387.99, pending pullback entry at M5 Order Block Detector zone 63673.63-63840.80 with Liquidity Swings confluence. ETHUSDT/SOLUSDT/XRPUSDT/DOGEUSDT scanned, all withheld (high CHOP, flat ranges, no structure) -- correctly no forced setups per the crypto-watchlist-without-a-floor rule (ROUTINES_V2 SS9). No prior active setups entering this run (active_setups.json was empty after the 2026-07-18 retroactive sig-088 expiry cleanup).",
     "scenario_schema": {
       "trigger_types": ["close_above","close_below","high_above","low_below","zone_reclaim"],
       "sl_update_direction_rule": "reduce_risk_only: LONG -> new_sl > current_sl AND new_sl < entry_lower; SHORT -> new_sl < current_sl AND new_sl > entry_upper",
@@ -16,5 +16,65 @@
       "precondition_doc": "optional -- a bar matching precondition type/level must appear BEFORE the main trigger bar (chronological order)"
     }
   },
-  "active_setups": []
+  "active_setups": [
+    {
+      "id": "sig-089",
+      "instrument": "BTCUSDT",
+      "group": "crypto",
+      "direction": "LONG",
+      "setup_type": "A",
+      "lifecycle": "day_trade",
+      "status": "pending",
+      "entry_lower": 63673.63,
+      "entry_upper": 63840.80,
+      "sl": 63570,
+      "tp1": 64274.47,
+      "tp2": 64387.99,
+      "tp3": null,
+      "confidence": 80,
+      "rr_planned": 2.76,
+      "risk_pct": 0.5,
+      "session_name": "trw2-crypto-sat-mid",
+      "signal_date": "2026-07-18",
+      "signal_time_uk": "14:20",
+      "created_at": "2026-07-18T13:20:00Z",
+      "published_at": "2026-07-18T13:20:00Z",
+      "last_checked_at": "2026-07-18T13:20:00Z",
+      "expiry": "2026-07-20T21:00:00Z",
+      "expiry_note": "crypto weekend expiry per §9a -- Monday 22:00 UK daily-close anchor",
+      "tp1_hit": false,
+      "sl_updated": false,
+      "screenshot_m15_path": "screenshots/crypto/sig-089_m15_standard_2026-07-18_1417.png",
+      "notes": "Pending limit entry -- price at publication 64032, above entry_upper. M5 BOS/CHoCH M15/engulfing trigger required on actual fill before treating as triggered/active. H1 sweep 62537.56 -> CHoCH 64387.99 confirmed, RSI H1 56.5 no bearish divergence, CHOP H1 47.",
+      "scenarios": {
+        "a": {
+          "label": "Zone reclaim confirmation -- price sweeps slightly below OB low then closes back above OB high on M15, confirming bullish reaction",
+          "probability_pct": 45,
+          "trigger": {
+            "type": "zone_reclaim",
+            "level": null,
+            "timeframe": "M15",
+            "precondition": { "type": "low_below", "level": 63673.63, "note": "precondition: a bar dips below entry_lower before the reclaim close" }
+          },
+          "sl_update": { "type": "absolute", "value": 63640, "direction": "reduce_risk_only" },
+          "tp_updates": null,
+          "flags": { "applied": false, "one_shot": true, "disabled": false, "mutually_exclusive_with": ["b"] }
+        },
+        "b": {
+          "label": "observational -- price continues sideways/up without a clean OB retest",
+          "trigger": null,
+          "flags": { "applied": false, "one_shot": true, "disabled": false, "mutually_exclusive_with": ["a"] }
+        },
+        "c": {
+          "label": "structure weakening -- M15 close inside the lower half of the OB without reclaim, flag for manual review before SL",
+          "trigger": { "type": "close_below", "level": 63630, "timeframe": "M15" },
+          "flags": {
+            "applied": false, "one_shot": true, "disabled": false,
+            "action_on_trigger": "flag_for_manual_review",
+            "action_note": "BTCUSDT sig-089: M15 closed below 63630 inside the OB without a reclaim -- structure weakening, monitor closely for SL 63570."
+          }
+        }
+      }
+    }
+  ]
 }

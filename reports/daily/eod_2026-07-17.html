@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a0a0c; color: #d6d6d2;
+  font-family: 'Segoe UI', sans-serif; font-size: 13px;
+  padding: 20px; max-width: 880px; margin: 0 auto;
+}
+.header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:14px; }
+.header-left { display:flex; align-items:center; gap:12px; }
+.logo { width:56px; height:56px; border-radius:50%; object-fit:cover; border:2px solid #f5c842; box-shadow:0 0 0 3px #16140d; flex-shrink:0; }
+.brand { color:#f5c842; font-size:10.5px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; }
+.brand-title { color:#ffffff; font-size:20px; font-weight:900; letter-spacing:0.5px; line-height:1.1; margin:2px 0; }
+.brand-date { color:#7a7a75; font-size:11px; }
+.header-badges { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.badge { background:#121317; border:1px solid #23242a; border-radius:8px; padding:7px 12px; text-align:center; min-width:72px; }
+.badge-lbl { color:#6a6a65; font-size:9px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; margin-bottom:3px; }
+.badge-val { font-size:15px; font-weight:800; color:#ffffff; }
+.badge-val.gold { color:#f5c842; }
+.section { margin-bottom:14px; }
+.sec-title { color:#f5c842; font-size:10px; font-weight:800; letter-spacing:0.8px; text-transform:uppercase; margin-bottom:8px; padding-bottom:5px; border-bottom:1px solid #1e1e24; }
+.tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.tile { background:#121317; border:1px solid #23242a; border-radius:8px; padding:11px 10px; text-align:center; }
+.tile-lbl { color:#7a7a75; font-size:9.5px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px; }
+.tile-val { font-size:22px; font-weight:900; color:#ffffff; }
+.tile-val.green { color:#4ade80; } .tile-val.red { color:#f87171; } .tile-val.gold { color:#f5c842; }
+.tile-icon { font-size:14px; margin-left:3px; }
+.rr-box { border-radius:10px; padding:14px 18px; border:1px solid #23242a; margin-bottom:14px; }
+.rr-headline { font-size:28px; font-weight:900; margin-bottom:6px; }
+.rr-narrative { font-size:12px; line-height:1.65; color:#b0b0aa; }
+.rr-narrative b { color:#ffffff; }
+.rr-narrative .hi { color:#f5c842; }
+.recap-box { background:#0e0f12; border:1px solid #1e1f24; border-radius:10px; padding:13px 16px; font-size:12.5px; line-height:1.7; color:#c0c0bb; }
+.recap-box b { color:#ffffff; } .recap-box .gold { color:#f5c842; font-weight:700; } .recap-box .green { color:#4ade80; font-weight:700; } .recap-box .red { color:#f87171; font-weight:700; }
+.tbl-wrap { background:#0e0f12; border:1px solid #1e1f24; border-radius:10px; overflow:hidden; }
+table { width:100%; border-collapse:collapse; font-size:11.5px; }
+thead th { background:#121317; color:#6a6a65; font-size:9px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; padding:8px 10px; text-align:left; border-bottom:1px solid #1e1f24; }
+tbody tr { border-bottom:1px solid #14151a; } tbody tr:last-child { border-bottom:none; }
+tbody td { padding:8px 10px; color:#c8c8c3; vertical-align:middle; }
+.inst { font-weight:800; color:#ffffff; }
+.dir { font-size:10px; font-weight:800; padding:3px 7px; border-radius:4px; }
+.dir.long { background:#0d2412; color:#4ade80; } .dir.short { background:#2b0d0d; color:#f87171; }
+.type-a { display:inline-block; font-size:10px; font-weight:800; padding:2px 7px; border-radius:4px; background:#0d2412; color:#4ade80; }
+.type-b { display:inline-block; font-size:10px; font-weight:800; padding:2px 7px; border-radius:4px; background:#2b1a0d; color:#f5c842; }
+.played  { color:#4ade80; font-weight:700; font-size:11px; }
+.skipped { color:#6a6a65; font-weight:700; font-size:11px; }
+.pending { color:#f5c842; font-weight:700; font-size:11px; }
+.note-cell { color:#8a8a85; font-size:11px; }
+.outcome { font-size:10.5px; font-weight:800; padding:2px 7px; border-radius:4px; }
+.outcome.tp { background:#0d2412; color:#4ade80; } .outcome.sl { background:#2b0d0d; color:#f87171; }
+.outcome.pend { background:#1e2030; color:#94a3b8; } .outcome.inv { background:#1a1a1a; color:#5a5a55; }
+td.rr { font-weight:800; font-size:12px; } td.rr.green { color:#4ade80; } td.rr.red { color:#f87171; } td.rr.grey { color:#6a6a65; }
+.exec-block { font-size:12px; line-height:1.6; padding:9px 13px; border-radius:7px; margin-bottom:7px; border-left:3px solid; }
+.exec-block:last-child { margin-bottom:0; } .exec-block b { font-weight:800; }
+.exec-good { background:#0a1f0a; border-color:#4ade80; color:#a8d8a8; } .exec-good b { color:#4ade80; }
+.exec-bad  { background:#1f0a0a; border-color:#f87171; color:#d8a8a8; } .exec-bad  b { color:#f87171; }
+.exec-note { background:#1a160a; border-color:#f5c842; color:#d8caa8; } .exec-note b { color:#f5c842; }
+.risk-box { background:#0e0f12; border:1px solid #1e1f24; border-radius:10px; padding:12px 16px; }
+.risk-box ul { padding-left:16px; }
+.risk-box li { font-size:12px; line-height:1.7; color:#b8b8b3; margin-bottom:3px; }
+.risk-box li b { color:#ffffff; } .risk-box li .red { color:#f87171; font-weight:700; } .risk-box li .gold { color:#f5c842; font-weight:700; } .risk-box li .green { color:#4ade80; font-weight:700; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.panel { background:#0e0f12; border:1px solid #1e1f24; border-radius:10px; padding:13px 15px; }
+.panel .p-title { color:#f5c842; font-size:10px; font-weight:800; letter-spacing:0.7px; text-transform:uppercase; margin-bottom:9px; padding-bottom:5px; border-bottom:1px solid #1e1f24; }
+.panel ul { padding-left:16px; }
+.panel li { font-size:11.5px; line-height:1.7; color:#b8b8b3; margin-bottom:2px; }
+.panel li b { color:#ffffff; } .panel li .gold { color:#f5c842; font-weight:700; } .panel li .green { color:#4ade80; font-weight:700; } .panel li .red { color:#f87171; font-weight:700; }
+.mp-box { background:#16140d; border:1px solid #6b5a1e; border-radius:10px; padding:16px 18px; }
+.mp-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.mp-title { color:#f5c842; font-size:10px; font-weight:800; letter-spacing:0.8px; text-transform:uppercase; }
+.mp-risk-badge { padding:4px 12px; border-radius:5px; font-size:11px; font-weight:800; background:#0d2818; color:#4ade80; border:1px solid #4ade80; }
+.mp-main { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
+.mp-tile { background:#0a0a0c; border:1px solid #2a2510; border-radius:8px; padding:10px 12px; text-align:center; }
+.mp-tile-lbl { color:#6a6a65; font-size:9px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+.mp-tile-val { font-size:18px; font-weight:900; }
+.mp-tile-val.equity { color:#f5c842; }
+.mp-tile-val.pnl { color:#9a9a95; }
+.mp-tile-val.rr-val { color:#9a9a95; }
+.mp-detail { font-size:11.5px; line-height:1.7; color:#9a9a95; }
+.mp-detail span { color:#c8c8c3; }
+.mp-news { margin-top:10px; padding:7px 12px; background:#0a0f1a; border:1px solid #1a2030; border-radius:6px; font-size:11px; color:#7a8aa5; font-style:italic; }
+.footer { text-align:center; color:#3a3a35; font-size:10px; margin-top:16px; padding-top:12px; border-top:1px solid #14151a; }
+.footer .trw { color:#f5c842; font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <img class="logo" src="data:image/jpeg;base64,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" alt="TRW">
+    <div>
+      <div class="brand">Trading Room Workshop</div>
+      <div class="brand-title">EOD REVIEW</div>
+      <div class="brand-date">17.07.2026 (Piątek) &middot; 22:00 UK &middot; ICT/SMC</div>
+    </div>
+  </div>
+  <div class="header-badges">
+    <div class="badge"><div class="badge-lbl">XAU (live)</div><div class="badge-val gold">$4017.32</div></div>
+    <div class="badge"><div class="badge-lbl">XAU Zmiana</div><div class="badge-val" style="color:#4ade80">+0.96%</div></div>
+    <div class="badge"><div class="badge-lbl">DXY</div><div class="badge-val">100.75</div></div>
+    <div class="badge"><div class="badge-lbl">VIX</div><div class="badge-val">18.76</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title">&#9889; Wynik dzienny &mdash; seria</div>
+  <div class="tiles">
+    <div class="tile"><div class="tile-lbl">Opublikowane</div><div class="tile-val gold">0</div></div>
+    <div class="tile"><div class="tile-lbl">TP1</div><div class="tile-val green">0 <span class="tile-icon">&#10003;</span></div></div>
+    <div class="tile"><div class="tile-lbl">TP2</div><div class="tile-val green">0 <span class="tile-icon">&#10003;</span></div></div>
+    <div class="tile"><div class="tile-lbl">SL</div><div class="tile-val red">0 <span class="tile-icon">&#10007;</span></div></div>
+  </div>
+</div>
+
+<div class="rr-box" style="border-color:#f5c842; background:#1a160a;">
+  <div class="rr-headline" style="color:#f5c842;">0.0R &mdash; spokojny dzień odbicia, sig-088 wciąż czeka</div>
+  <div class="rr-narrative">0 setupów opublikowanych, 0 aktywowanych, 0 rozstrzygnięć. <b>sig-088 XAUUSD SHORT</b> pozostał w oczekiwaniu 5. rutynę z rzędu &mdash; strefa entry <b>4042.41&ndash;4050.74</b> nie została dotknięta (dystans wahał się 10&ndash;58pkt w ciągu dnia, kończąc sesję ~23pkt poniżej). <span class="hi">Brak wymuszonych sygnałów</span> mimo silnego odbicia (+38pkt) po zeszłotygodniowym dołku 3959.8.</div>
+</div>
+
+<div class="section">
+  <div class="sec-title">&#127758; Market recap</div>
+  <div class="recap-box">
+    Dzień odreagowania po czwartkowym -2.07% załamaniu. XAUUSD zamiótł dołek <b>3959.8</b> (poniżej wtorkowego 3969.345) wcześnie w sesji, po czym odwrócił się i zamknął blisko szczytu 64-punktowego zakresu dnia: open 3979.265, low 3959.8, high 4023.835, obecnie <span class="green">4017.315 (+0.96%)</span>. Pozycja zamknięcia w zakresie = 89.8% (mocna), ale miara samego dolnego knota (open&minus;low / range) = tylko 30.4% &mdash; poniżej progu &gt;60% wymaganego dla czystego sygnału swing sweep-rejection na D1 (§7d), więc świadomie nie potraktowano tego jako gotowy sygnał swing. <b>DXY</b> płaski cały dzień (100.75&ndash;100.77). <b>VIX</b> 18.76 &mdash; lekki wzrost względem 15.9&ndash;17.9 wcześniej w tygodniu, ale wciąż daleko od reżimu strachu. Brak newsów High Impact dzisiaj (ForexFactory: 0 zdarzeń) &mdash; brak macro_conflict.
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title">&#128194; Setupy &mdash; carry-over / nowe</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Instrument</th><th>Typ</th><th>Kierunek</th><th>Status</th><th>Powód / uwaga</th></tr></thead>
+      <tbody>
+        <tr><td class="inst">XAUUSD</td><td><span class="type-b">B</span></td><td><span class="dir short">SHORT</span></td><td class="pending">Oczekuje (carry)</td><td class="note-cell">sig-088, entry 4042.41&ndash;4050.74, SL 4074. Nigdy nie dotknięty &mdash; cena chodziła w zakresie 3960&ndash;4024 przez cały dzień, ~23pkt poniżej strefy na zamknięcie sesji. Brak scenariusza A/C.</td></tr>
+        <tr><td class="inst" colspan="5" style="text-align:center; color:#6a6a65; font-style:italic;">Brak nowych publikacji &mdash; daily-close nie skanuje watchlisty pod nowe sygnały (rezerwat rutyn Asia/London/NY/NY2).</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title">&#128200; Sygnały + wyniki (w R)</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Instrument</th><th>Kierunek</th><th>Entry</th><th>SL</th><th>TP1</th><th>TP2</th><th>Wynik</th><th>RR</th></tr></thead>
+      <tbody>
+        <tr><td class="inst" colspan="8" style="text-align:center; color:#6a6a65; font-style:italic;">Brak rozstrzygniętych sygnałów dzisiaj &mdash; 0 nowych wpisów w results_log.jsonl.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title">&#127919; Execution &amp; discipline</div>
+  <div class="exec-good"><b>Dyscyplina:</b> zero wymuszonych sygnałów mimo odbicia +38pkt po dołku &mdash; system nie gonił świeżego SHORTa w rozciągnięty ruch tylko po to, by "coś zrobić".</div>
+  <div class="exec-good"><b>sig-088:</b> poszerzony SL (4074, po lekcjach sig-085/sig-087) pozostaje nietestowany &mdash; cena ani razu nie zbliżyła się do strefy entry ani do SL przez cały tydzień od publikacji.</div>
+  <div class="exec-note"><b>Uwaga:</b> D1 dzisiaj ma cechy byczego sweep-rejection (close-position 89.8%), ale nie przechodzi ściślejszej miary samego knota (30.4% &lt; 60%) &mdash; poprawnie odroczono jako kandydata swing zamiast publikować na wyrost.</div>
+</div>
+
+<div class="section">
+  <div class="sec-title">&#9888; Risk notes</div>
+  <div class="risk-box"><ul>
+    <li>Seria strat: <b>1</b> (sig-087, 2026-07-15) &mdash; daleko poniżej progu protection mode (4 straty z rzędu). <span class="green">Protection mode: NIEAKTYWNY</span>.</li>
+    <li>Brak konfliktu makro &mdash; DXY płaski, VIX lekko podwyższony (18.76) ale bez skoku strachu.</li>
+    <li>Brak skorelowanego klastra &mdash; tylko 1 aktywny setup przez cały dzień.</li>
+    <li>Piątek po 18:00 UK &mdash; reguła E4 (brak nowych swingów bez domknięcia przed weekendem) formalnie w mocy, ale bez znaczenia praktycznego &mdash; brak nowych kandydatów rozważanych w tym runie.</li>
+  </ul></div>
+</div>
+
+<div class="section">
+  <div class="sec-title">&#128218; Lessons &amp; outlook &mdash; Poniedziałek, 20.07.2026</div>
+  <div class="two-col">
+    <div class="panel">
+      <div class="p-title">&#128161; Lessons learned</div>
+      <ul>
+        <li>Wielodniowy pending Setup B (sig-088, 5+ sprawdzeń bez aktywacji) to normalny, zdyscyplinowany wynik, gdy cena po prostu nie wraca do strefy &mdash; nie sygnał do rozluźniania kryteriów.</li>
+        <li>Dzisiejsza świeca D1 pokazuje realne cechy byczego odrzucenia wg pozycji zamknięcia (89.8%), ale zawodzi na ściślejszej mierze samego knota (30.4%) &mdash; przypomnienie, że te dwie miary mogą się rozjeżdżać i to ta ściślejsza bramkuje w §7d.</li>
+        <li>Lekki wzrost VIX (15.9&rarr;18.76 w ciągu tygodnia) obok chaotycznego, bezkierunkowego dnia na złocie wart obserwacji w przyszłym tygodniu &mdash; jeszcze nie na tyle wysoki by flagować macro_conflict.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <div class="p-title">&#128301; Outlook na poniedziałek</div>
+      <ul>
+        <li>XAUUSD kończy tydzień na 4017.315, po zamieceniu i odwróceniu od tygodniowego dołka 3959.8.</li>
+        <li>Jeśli piątkowa świeca D1 zamknie się potwierdzonym byczym odrzuceniem powyżej ~4010 &mdash; rozważyć formalnego kandydata swing LONG na rutynie Asia w poniedziałek.</li>
+        <li>sig-088 SHORT (4042.41&ndash;4050.74) wciąż technicznie ważny, ale traci grunt do odbijającej się ceny &mdash; obserwować pullback do strefy lub narastającą nieświeżość.</li>
+        <li>Kluczowe poziomy: opór ~4042&ndash;4051 (strefa sig-088), wsparcie 3959.8 (dołek tygodnia), dalej strefa zbieżności TP1/TP2 3928&ndash;3960 (Order Block Detector).</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title">&#128188; Model portfolio</div>
+  <div class="mp-box">
+    <div class="mp-header">
+      <div class="mp-title">Risk Engine &middot; $10k base &middot; 0.5% / trade</div>
+      <div class="mp-risk-badge">NORMAL</div>
+    </div>
+    <div class="mp-main">
+      <div class="mp-tile"><div class="mp-tile-lbl">Equity</div><div class="mp-tile-val equity">$9,992.82</div></div>
+      <div class="mp-tile"><div class="mp-tile-lbl">Daily P&amp;L (USD)</div><div class="mp-tile-val pnl">$0.00</div></div>
+      <div class="mp-tile"><div class="mp-tile-lbl">Daily P&amp;L (R)</div><div class="mp-tile-val rr-val">0.0R</div></div>
+    </div>
+    <div class="mp-detail">
+      <div>&#9654; <b>Triggered open:</b> <span>0</span></div>
+      <div>&#9711; <b>Pending:</b> <span>1 (sig-088, warunkowe 0.5% equity, nieaktywowane)</span></div>
+    </div>
+    <div class="mp-news">&#128240; 0 rozstrzygnięć w results_log dzisiaj (pełna weryfikacja 27/27 wpisów już policzonych). Equity bez zmian od 2026-07-16: $9,992.82.</div>
+  </div>
+</div>
+
+<div class="footer">
+  &#129302; Claude AI &raquo; <span class="trw">Trading Room Workshop</span> &middot; wygenerowano automatycznie &middot; 17.07.2026
+</div>
+
+</body>
+</html>

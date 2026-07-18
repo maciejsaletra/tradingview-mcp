@@ -1,64 +1,62 @@
-# Handoff — trw2-newyork (15:00 UK) — 2026-07-17
+# Handoff — trw2-crypto-sat-mid (14:00 UK) — 2026-07-18 (Saturday)
 
-**Generated (real wall-clock):** KROK 0 — `date -u` read 14:09:42 UTC = 15:09 UK, 9min past the 15:00 UK slot. Normal drift, legitimate run (no anomaly).
+**Generated (real wall-clock):** KROK 0 — `date -u` read 13:07:40 UTC = 14:07 UK BST, 7min past the 14:00 UK slot. Normal drift, legitimate run (no anomaly).
 
-**From:** `trw2-newyork` (15:00 UK)
-**To:** `trw2-ny2` (18:00 UK today, 2026-07-17 — Friday)
+**From:** `trw2-crypto-sat-mid` (Sat 14:00 UK, 2026-07-18)
+**To:** `trw2-crypto-sat-pm` (Sat 20:00 UK, 2026-07-18)
 
 ---
 
-## sig-088 XAUUSD SHORT — status (re-confirmed ~14:00 UTC)
+## sig-089 BTCUSDT LONG — new setup published this run
 
-- Entry zone **4042.41–4050.74** still untouched after ~23h. Bar-walk M15 23:15 UTC(16.07)–14:00 UTC(17.07): max high only 4008.795 (03:35 UTC), still ~34pts below the zone.
-- Notable: price swept down to **3959.8** at 13:00 UTC (just under TP1 3960, but irrelevant — setup never triggered so this isn't a TP hit), then sharply reversed to 4003.745 (13:30 UTC), now consolidating ~3997.7.
-- SL 4074, TP1/2/3 (3960/3928/3876) — no touches (irrelevant pre-trigger). Scenarios A/C (H1 close above 4050.74 / 4074) not fired — H1 max high all session stayed well below both levels.
-- **Structure check (ICT Pro + SMC LuxAlgo, both agree):** most recent confirmed H1 break is still bearish **BOS at 3969.35** — no CHoCH printed despite the sharp bounce. The reversal off 3959.8 is technical/reactive so far, not a confirmed structural shift. SHORT thesis for sig-088 remains intact; no reason to flip bias.
-- `memory/active_setups.json` updated: `last_checked_at` → `2026-07-17T14:00:00Z`, note appended.
-- Carry-over **PLAN NEW YORK** card sent to `xau` (message_id 3494), screenshot via `chart-render` fallback again (native `draw_shape` rectangle still doesn't honor color overrides — known bug, horizontal lines are fine) — `screenshots/xau/sig-088_m15_standard_2026-07-17_1420.png` + companion `_meta.json`.
+- **Entry (pending, not yet triggered):** 63,673.63–63,840.80 (M5 Order Block Detector zone, LuxAlgo). Price at publication: 64,032 — above the zone, box fresh and untouched.
+- **SL:** 63,570 (beyond OB + M15 swing low, buffered). **TP1:** 64,274.47 (M15 swing high, RR 2.76). **TP2:** 64,387.99 (H1 CHoCH high, RR 3.37).
+- **Setup type A**, confidence **80** (standalone score — no guarantee-ladder degradation needed). Basis: H1 sweep 62,537.56 → confirmed CHoCH/BOS to 64,387.99, 5+h clean hold above CHoCH level, RSI H1 56.5 no bearish divergence, CHOP H1 47. Entry reinforced by Liquidity Swings confluence inside the OB (+5) and a high-volume-qualified M15 OTE 0.5–0.618 zone just above it (+3, volume ratio ~9.2x 20-bar avg).
+- This is the exact watch item flagged by `trw2-crypto-sat-am` (02:30 UK) — matured into a full standalone publish this run.
+- **Scenarios defined in `active_setups.json`:** (a) zone_reclaim (sweep below entry_lower then M15 close back above entry_upper) → SL trails to 63,640; (b) observational; (c) M15 close below 63,630 inside the OB without reclaim → flag_for_manual_review (structure weakening warning, not auto-close).
+- `screenshot_m15_path`: `screenshots/crypto/sig-089_m15_standard_2026-07-18_1417.png`.
+- **Expiry:** crypto weekend rule (§9a) — Monday 2026-07-20 22:00 UK daily-close anchor, unless it triggers/resolves sooner.
 
-## Pre-session analysis card (mandatory, sent)
+## Crypto watchlist scan (TRW_CRYPTO, 5/5 analyzed)
 
-- XAUUSD session analysis card (`context/session_analysis_template.html`) sent to `xau` (message_id 3495). Bias: SHORT BIAS. **Note: sent second this run (after the carry-over card, message 3494), reversed vs the §7 step 14 canonical order (a. pre-session first, b. carry-over second) — both delivered, no content issue, just sequencing; keep an eye on ordering next run.**
-- Confluence flagged: 0.618 retracement of the 4104.05→3959.8 H4 impulse ≈ 4048.94, sitting right inside the LuxAlgo OB entry zone (4042.41–4050.74) — nice fib/OB confluence for the existing thesis.
+**1 new setup published (BTC). 4 withheld correctly, no floor required:**
+- **ETHUSDT** — CHOP H1 65.7 (very choppy), RSI 41.2 weak momentum, no clean structure. Skip.
+- **SOLUSDT** — CHOP H1 57.6, ~1% range (74.66–75.45), no edge. Skip.
+- **XRPUSDT** — flat range all week (1.0838–1.0942), CHOP H1 66.4, no sweep/CHoCH. Skip.
+- **DOGEUSDT** — flat range, CHOP H1 54.1, no directional break. Skip.
+- None of these are watch items for next run — no structural change flagged, but re-scan fresh anyway per §7 krok 0/watchlist refresh.
 
-## Macro/news/DXY/VIX (§6)
+## Macro/news/DXY/VIX (KROK 0)
 
-- ForexFactory `calendar today --impact High`: 0 events.
-- WebSearch: gold down >3% this week, holding below $4000. Middle East escalation continues — US struck Iran this week, Iran retaliated against US bases, Trump threatens further strikes unless diplomatic breakthrough. Oil up, inflation/rate concerns elevated, but softer US inflation data ruled out a July Fed hike (September still open).
-- DXY 100.756 (flat vs 100.73 this morning). VIX 17.94 (mild uptick from 16.72, not a fear spike). **No macro_conflict** with sig-088's SHORT thesis.
+- DXY 100.754, VIX 18.76 — both stale at Friday's close (weekend, unchanged from sat-am run).
+- ForexFactory High Impact: 0 events (weekend, expected).
+- WebSearch: Iran/Strait-of-Hormuz conflict still escalating (oil at 1-month high, Hormuz shipping traffic down >50% w/w, US conducted a 3rd day of strikes on Iran). Chip-stock selloff continuing to drag risk assets. Crypto Fear&Greed Index = 25 (Extreme Fear). BTC holding ~$63.9k, consolidating well above the CHoCH level. No formal `macro_conflict` (no scheduled event) but persistent risk-off backdrop + thin weekend liquidity remains a session_quality discount for the non-BTC watchlist — worth a fresh WebSearch check at 20:00 UK in case the Hormuz situation escalates further (would harden `macro_conflict` if it spikes risk-off sharply).
 
-## Full watchlist scan this run (New York session)
+## Daily stats
 
-No new setup cleared the Signal Risk Engine — genuine NO FORCE outcome:
-- **XAUUSD**: covered by sig-088; sweep+bounce at 3959.8 noted but no H1 CHoCH confirmed — not a valid reversal trigger yet, flagged as a watch item only.
-- **XAGUSD**: mirrors gold weakness (~-5.5% over 5D), no fresh reversal structure.
-- **EURUSD**: choppy/range (+0.3%), no edge.
-- **USDJPY**: flat, tight range (161.6–162.5), no setup.
-- **NAS100**: strong bearish trend (-3.77% over 5D), swept 28216.6 intraday and bounced, but no nearby OB/FVG for a pullback entry — extended/late, skipped per E4.
-- **UK100**: choppy (+0.58%), no trend.
-- **GER40**: mild bearish (-1.24%), ranging, no clean structure.
-- **SP500**: mild bearish (-0.94%), no structure.
-- **DJ30**: flat (-0.02%), no setup.
-- **NIKKEI**: `CAPITALCOM:JP225` feed **still broken** (quote_get fails) — long-running unresolved item.
-- **UKOIL**: strong bullish breakout (+11.3% over 5D) on Middle East tensions, now at fresh highs (87.12) with no OB/FVG pullback zone visible — late entry, skipped. Fib levels still pending recalc off the new swing (flagged again).
+1 setup published (sig-089), 0 activated yet, 0 TP/SL hits, 1 pending. Loss streak: 1 (sig-087, 2026-07-15) — protection mode NOT active (threshold 4).
 
-## M5 scalp check (§7 krok 6.5)
+## Model Portfolio
 
-P1 (session window) failed — real time 15:09 UK is past the NY scalp window (14:25–15:00 UK). Skipped silently, no journal entry.
-
-## Open items needing Magic's decision (recurring, unresolved — flagging again)
-
-1. **NIKKEI data-extraction error** — `CAPITALCOM:JP225` feed, many consecutive routines now, needs direct attention.
-2. **`draw_shape` rectangle color-override bug** — native TradingView rectangle tool still doesn't honor linecolor/fillcolor/textcolor (horizontal lines work fine); `chart-render` fallback remains the working path for entry-zone visuals.
-3. **UKOIL fib levels** — still pending a fresh 0.618/0.786 recalc off the latest (Middle East-driven) swing; not touched today, no active UKOIL setup.
-4. Card send order this run: pre-session card was sent after the carry-over card, not before (§7 step 14 wants pre-session first). No content issue, just a sequencing slip — worth double-checking order on the next run.
-
-## What's next for 2026-07-17 (Friday) — trw2-ny2 18:00 UK
-
-Standard NY2 check: KROK 0 timing verification first, then sig-088 bar-walk continuation (watch specifically whether the 3959.8 sweep resolves into a confirmed H1 CHoCH — if it does, re-evaluate whether the SHORT thesis needs a scenario-C-style flag even without hitting 4074), continued USD/DXY/VIX/news context, full watchlist re-scan. It's Friday — after 18:00 UK, no new swing entries unless scenarios A/B/C can complete before the weekend close (applies from this routine onward).
+Unchanged: **$9,992.82** (0 results_log resolutions this run — sig-089 is a fresh pending publish, not resolved yet).
 
 ## Journal/reports written this run
 
-- `memory/active_setups.json` — sig-088 `last_checked_at` → `2026-07-17T14:00:00Z`, note appended, `screenshot_m15_path` updated.
-- No new `journal/signals_log.jsonl` or `journal/results_log.jsonl` entries this run (nothing new published or resolved).
-- Telegram: PLAN NEW YORK carry-over card (message_id 3494) + pre-session analysis card (message_id 3495), both to `xau`.
+- `journal/signals_log.jsonl` — sig-089 appended.
+- `memory/active_setups.json` — sig-089 added (was empty entering this run).
+- `journal/daily_journal.md` — 2026-07-18 Weekend Crypto (trw2-crypto-sat-mid) entry appended.
+- `screenshots/crypto/sig-089_m15_standard_2026-07-18_1417.png` — clean M15 chart, entry/SL/TP1/TP2 lines (rectangle color-override bug worked around by using two horizontal lines for the entry zone instead of a filled box — see open item below).
+- `screenshots/crypto/session_btc_2026-07-18_1420.png` — pre-session analysis card (weekend H1/M15 variant), sent to `krypto` (message_id 3517).
+- `screenshots/crypto/sig-089_card.png` — commercial signal card, sent to `krypto` (message_id 3518).
+
+## Open items needing Magic's decision (carried forward)
+
+1. **`draw_shape` rectangle color-override bug — still present, worked around this run.** Rectangle rendered gray/white instead of the yellow `overrides` color regardless of parameters. Used two yellow horizontal lines (entry_upper/entry_lower) instead of a filled box for the entry zone this run — worked cleanly and is a reasonable permanent workaround if the box bug isn't going to be fixed. `chart-render` fallback remains the alternative if a full filled box is ever required. Horizontal lines confirmed still fine.
+2. **UKOIL fib levels** — still pending a fresh 0.618/0.786 recalc; not touched this run (crypto-only scope).
+3. **XAUUSD swing D1 bullish-rejection flag** — from 2026-07-17 Friday close, unresolved, still watch Monday's Asia routine once gold reopens (not touched this run, crypto-only scope).
+4. **BTCUSDT sig-089 monitoring** — per §7b E7/§7 krok 6.5 analog for day-trading pending setups: if idle >10min between full routine runs, a lightweight `quote_get` check against entry/SL/TP1 is good practice, though the next full routine (`trw2-crypto-sat-pm`, 20:00 UK) will do the complete bar-walk regardless.
+5. Scheduler timing anomaly pattern — this run was clean/on-time (7min drift, normal).
+
+## What's next — `trw2-crypto-sat-pm` (Sat 20:00 UK)
+
+Full bar-walk on sig-089 (M5 for the tight entry zone, since gap since `last_checked_at` is well under 40h) — check for zone_reclaim (scenario A), continued no-touch (still pending), or SL/TP hit. Re-scan the full TRW_CRYPTO watchlist fresh (don't assume ETH/SOL/XRP/DOGE stay quiet). Re-check DXY/VIX and the Iran/Hormuz + chip-selloff macro backdrop for any escalation. Carry-over card treatment applies to sig-089 if it's still open (per §7 krok 2/14b — every active setup gets a status update, primary instrument included).

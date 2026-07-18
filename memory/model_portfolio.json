@@ -121,9 +121,19 @@
       "drawdown_pct": 0,
       "status": "normal",
       "note": "0 results_log resolutions today (all 27 entries in results_log.jsonl already in counted_trade_ids, including sig-087 whose loss was already booked against 2026-07-15's daily_history in an earlier extended session). 1 new setup published today (sig-088 XAUUSD SHORT, trw2-newyork 15:09 UK) but never triggered -- entry zone 4042.41-4050.74 sat 50-70pts above price for the entire remainder of the session as the day's strong bearish trend carried XAU from ~4060 down to a close of 3976.58 (-2.07% on the day, -2.4% over 5D) without ever retesting the zone. Open risk overnight: 0 triggered, 0 pending-but-imminent (sig-088 remains a distant pending order, not close enough to count as live conditional risk). day_start_equity corrected from a stale 10043.03 (never rolled over after sig-087's loss because 2026-07-15's daily-close never ran) to the true 9992.82 carried in from that loss -- this daily_history entry is the actual first genuine daily-close bookkeeping since sig-087 resolved."
+    },
+    {
+      "date": "2026-07-17",
+      "start_equity": 9992.82,
+      "end_equity": 9992.82,
+      "pnl_usd": 0,
+      "pnl_r": 0,
+      "drawdown_pct": 0,
+      "status": "normal",
+      "note": "0 results_log resolutions today (all 27 entries already in counted_trade_ids, most recently confirmed against a fresh full re-check this run -- ids match exactly, nothing new to sweep). 0 new setups published today. 1 setup remained active all day (sig-088 XAUUSD SHORT) but never triggered -- entry zone 4042.41-4050.74 stayed 10-58pts above price the entire session as price chopped/recovered in the 3960-4024 range without reaching it. Open risk overnight: 0 triggered, 1 pending (sig-088, conditional 0.5% equity, not counted as live risk since untriggered). Equity unchanged since 2026-07-16's close."
     }
   ],
-  "last_updated": "2026-07-16",
+  "last_updated": "2026-07-17",
   "weekly_history": [
     {
       "week_ending": "2026-07-12",
