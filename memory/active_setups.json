@@ -1,10 +1,16 @@
 {
   "_meta": {
     "schema_version": "2.2",
-    "last_updated": "2026-07-18T13:20:00Z",
-    "note": "trw2-crypto-sat-mid (14:00 UK): sig-089 BTCUSDT LONG added -- BTC weekend guarantee slot, scored standalone confidence 80 (no degradation ladder needed). Entered on its own merit: H1 sweep 62537.56 + confirmed CHoCH 64387.99, pending pullback entry at M5 Order Block Detector zone 63673.63-63840.80 with Liquidity Swings confluence. ETHUSDT/SOLUSDT/XRPUSDT/DOGEUSDT scanned, all withheld (high CHOP, flat ranges, no structure) -- correctly no forced setups per the crypto-watchlist-without-a-floor rule (ROUTINES_V2 SS9). No prior active setups entering this run (active_setups.json was empty after the 2026-07-18 retroactive sig-088 expiry cleanup).",
+    "last_updated": "2026-07-19T06:50:00Z",
+    "note": "S9b TRIGGER A RESOLUTION 2026-07-19 (manual session with Magic): sig-089 BTCUSDT LONG -> EXPIRED_NO_ENTRY. Entry zone 63673.63-63840.80 never touched (post-pub min low 63963.00 @ 13:35Z 07-18); price crossed TP1 64274.47 pre-trigger @ bar 17:10Z 07-18 and TP2 @ 17:40Z, rallied to 64967 - thesis consumed without a position. Full record in results_log.jsonl (rr 0, event-bar timestamps). NEXT RUN (trw2-crypto-sun-mid 14:00 UK): BTC=1 weekend guarantee requires a FRESH BTC scan and new card on current structure (S9b Trigger A pkt 5) - do not resurrect sig-089 levels. New rules S9b active: Trigger A (session-start expiry of stale pendings incl. TP1-crossed-pre-trigger) + Trigger B (SL/TP touch -> immediate close with bar timestamp + same-run fresh scan + new card); par.9a expiry remains fallback only.",
     "scenario_schema": {
-      "trigger_types": ["close_above","close_below","high_above","low_below","zone_reclaim"],
+      "trigger_types": [
+        "close_above",
+        "close_below",
+        "high_above",
+        "low_below",
+        "zone_reclaim"
+      ],
       "sl_update_direction_rule": "reduce_risk_only: LONG -> new_sl > current_sl AND new_sl < entry_lower; SHORT -> new_sl < current_sl AND new_sl > entry_upper",
       "screenshot_m15_path_doc": "Path to the §7b M15 standard screenshot. Must be <id>_m15_standard_<ts>.png with companion _meta.json (TF=15, has_entry_box, has_sl_line, has_tp_lines). Written by bar-walk after capture_screenshot. H1 or non-standard screenshots must NOT be stored here -- use null until §7b is run.",
       "flags_doc": {
@@ -16,65 +22,5 @@
       "precondition_doc": "optional -- a bar matching precondition type/level must appear BEFORE the main trigger bar (chronological order)"
     }
   },
-  "active_setups": [
-    {
-      "id": "sig-089",
-      "instrument": "BTCUSDT",
-      "group": "crypto",
-      "direction": "LONG",
-      "setup_type": "A",
-      "lifecycle": "day_trade",
-      "status": "pending",
-      "entry_lower": 63673.63,
-      "entry_upper": 63840.80,
-      "sl": 63570,
-      "tp1": 64274.47,
-      "tp2": 64387.99,
-      "tp3": null,
-      "confidence": 80,
-      "rr_planned": 2.76,
-      "risk_pct": 0.5,
-      "session_name": "trw2-crypto-sat-mid",
-      "signal_date": "2026-07-18",
-      "signal_time_uk": "14:20",
-      "created_at": "2026-07-18T13:20:00Z",
-      "published_at": "2026-07-18T13:20:00Z",
-      "last_checked_at": "2026-07-18T13:20:00Z",
-      "expiry": "2026-07-20T21:00:00Z",
-      "expiry_note": "crypto weekend expiry per §9a -- Monday 22:00 UK daily-close anchor",
-      "tp1_hit": false,
-      "sl_updated": false,
-      "screenshot_m15_path": "screenshots/crypto/sig-089_m15_standard_2026-07-18_1417.png",
-      "notes": "Pending limit entry -- price at publication 64032, above entry_upper. M5 BOS/CHoCH M15/engulfing trigger required on actual fill before treating as triggered/active. H1 sweep 62537.56 -> CHoCH 64387.99 confirmed, RSI H1 56.5 no bearish divergence, CHOP H1 47.",
-      "scenarios": {
-        "a": {
-          "label": "Zone reclaim confirmation -- price sweeps slightly below OB low then closes back above OB high on M15, confirming bullish reaction",
-          "probability_pct": 45,
-          "trigger": {
-            "type": "zone_reclaim",
-            "level": null,
-            "timeframe": "M15",
-            "precondition": { "type": "low_below", "level": 63673.63, "note": "precondition: a bar dips below entry_lower before the reclaim close" }
-          },
-          "sl_update": { "type": "absolute", "value": 63640, "direction": "reduce_risk_only" },
-          "tp_updates": null,
-          "flags": { "applied": false, "one_shot": true, "disabled": false, "mutually_exclusive_with": ["b"] }
-        },
-        "b": {
-          "label": "observational -- price continues sideways/up without a clean OB retest",
-          "trigger": null,
-          "flags": { "applied": false, "one_shot": true, "disabled": false, "mutually_exclusive_with": ["a"] }
-        },
-        "c": {
-          "label": "structure weakening -- M15 close inside the lower half of the OB without reclaim, flag for manual review before SL",
-          "trigger": { "type": "close_below", "level": 63630, "timeframe": "M15" },
-          "flags": {
-            "applied": false, "one_shot": true, "disabled": false,
-            "action_on_trigger": "flag_for_manual_review",
-            "action_note": "BTCUSDT sig-089: M15 closed below 63630 inside the OB without a reclaim -- structure weakening, monitor closely for SL 63570."
-          }
-        }
-      }
-    }
-  ]
+  "active_setups": []
 }

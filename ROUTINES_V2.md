@@ -151,7 +151,7 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
 
 1. Read `memory/handoff_latest.md` and `memory/active_setups.json`.
 2. **Carry-over status check (mandatory, every run, no exceptions):** for every entry already in `memory/active_setups.json`, `chart_set_symbol` and check status vs entry/SL/TP1/TP2/TP3. **Both states require an intrabar bar-walk, not just a live quote** — pull `data_get_ohlcv` covering the period since `last_checked_at` (M5 for tight levels, M15 otherwise; if the gap since `last_checked_at` exceeds ~40h of traded time, use M15 so the 500-bar cap still covers the whole window) and walk the bars chronologically:
-   - **Not-yet-triggered setup:** first check whether any bar touched the entry zone. If never touched, a fresh `quote_get` completes the status (and if price has gapped *past* the zone without touching it, mark `missed`/`expired`). If a bar DID touch the zone, the setup activated between runs — continue the walk from that bar for SL/TP touches exactly like a triggered setup. A live quote back outside the zone looks identical to "never entered"; only the bar-walk distinguishes them.
+   - **Not-yet-triggered setup:** first check whether any bar touched the entry zone. If never touched, a fresh `quote_get` completes the status (and if price has gapped *past* the zone without touching it, mark `missed`/`expired`). **Dodatkowo (2026-07-19, §9b Trigger A pkt 3): if price has reached/crossed TP1 pre-trigger (ran AWAY from the zone to the target without ever filling) → `EXPIRED_NO_ENTRY` immediately — the thesis is consumed without a position; log with the timestamp of the bar that crossed TP1.** Dotyczy crypto weekend i scalp XAU wprost (§9b); dla day tradingu Mon–Fri analogiczna klasyfikacja `missed` przy tym samym warunku. If a bar DID touch the zone, the setup activated between runs — continue the walk from that bar for SL/TP touches exactly like a triggered setup. A live quote back outside the zone looks identical to "never entered"; only the bar-walk distinguishes them.
    - **Triggered/active setup:** walk bars for SL/TP touches (this exact failure happened with sig-084: SL swept intrabar in an 11.5h gap, price recovered, live quote looked fine). Only if no bar touched any level is the setup still genuinely active.
    - **Ambiguous bar convention (accounting rule, fixed):** if a single bar touches both SL and a TP level, count it as **SL hit** and record `ambiguous_bar: true` in the results_log entry. Deliberately conservative — it offsets the opposite optimistic bias of gap-through-SL being logged at exactly -1.0R. Classify each as one of: `not yet triggered — waiting in zone`, `triggered — running toward TP1 (~X% of the way, or X price-units away)`, `triggered — near SL (flag for tight monitoring)`, or resolved.
    - **Krok 2b — Scenario SL/TP update [added 2026-07-07]:** after confirming the setup is still active (no SL/TP touch), check whether any defined scenario trigger has fired. Only runs if `setup.scenarios` is present and non-empty. Process scenarios in priority order A → B → C:
@@ -697,6 +697,31 @@ Nowe setupy gwarancji 3+1 każdej sesji są generowane na aktualnym zakresie cen
 
 ---
 
+## 9b. Signal refresh triggers — Trigger A (nowa sesja) i Trigger B (SL/TP touch) — 2026-07-19
+
+Dwa niezależne triggery re-scanu dla **crypto weekend** i **scalp XAU**, działające RÓWNOLEGLE do naturalnego expiry §9a (expiry pozostaje fallbackiem, gdy żaden trigger nie wystąpił). Nie zmieniają logiki gwarancji 3+1/BTC=1, RR ani confidence — wyłącznie warstwa lifecycle/refresh.
+
+### TRIGGER A — nowa sesja (start każdej rutyny)
+
+Na starcie każdej rutyny (crypto weekend: każda z rutyn Sat/Sun; scalp XAU: każdy przebieg okna) system MUSI:
+1. Sprawdzić status każdego aktywnego/PENDING sygnału na instrumencie (bar-walk §7 krok 2 — bez zmian).
+2. **PENDING, który nie doszedł do entry przez poprzednią sesję → status `EXPIRED_NO_ENTRY`, karta zamknięta.** Definicje "przetrwał sesję": crypto weekend = setup był już raz bar-walkowany przez poprzednią rutynę i strefa entry wciąż niedotknięta; scalp XAU = koniec okna 2h (istniejące `session_close_by`, bez zmian — ostrzejsze niż Trigger A).
+3. **Dodatkowy warunek natychmiastowy (lekcja sig-089): cena osiągnęła/przekroczyła TP1 przed triggerem → `EXPIRED_NO_ENTRY` od razu przy tym checku**, bez czekania na pełną sesję — teza setupu skonsumowana bez pozycji (rozszerzenie reguły §10 Check 1 "TP1 pre-trigger → invalid" na carry-over; luka wykryta 2026-07-19 na sig-089, który wisiał PENDING gdy cena minęła TP1 i TP2 bez wejścia).
+4. Wpis do `results_log.jsonl`: `final_status: "expired_no_entry"`, `rr_realized: 0`, timestamp baru, w którym warunek zaszedł (nie czasu checku). Usunięcie z `active_setups.json`.
+5. **Po wygaszeniu → nowy scan struktury (M15/H1) i nowe wejście od zera w tej samej rutynie** — niezależnie od tego, czy stary sygnał był aktywny (BTC=1 gwarancja / gwarancja 3+1 / warunkowość scalpa działają normalnie).
+
+### TRIGGER B — dotknięcie SL / TP1 / TP2
+
+W momencie wykrycia dotknięcia (przy bar-walku LUB lightweight monitoringu — natychmiast w tym samym runie, nigdy "na końcu sesji"):
+1. Karta → `CLOSED` ze statusem `SL_HIT` / `TP1_HIT` / `TP2_HIT`.
+2. Wpis do `results_log.jsonl` z **timestampem baru dotknięcia** (z bar-walku, nie czasu wykrycia) + standardowe pola wyniku.
+3. **Natychmiast w tym samym runie: nowy scan struktury + nowa karta z nowym entry na aktualnej strukturze** — bez czekania na koniec sesji ani na expiry. (Przy TP1_HIT z runnerem 30%: runner zostaje pod trailing SL §16, a nowy scan dotyczy NOWEGO setupu — dwa niezależne byty.)
+4. **Monitoring rozszerzony (2026-07-19):** lightweight check >10 min (dotąd tylko scalp, §7 krok 6.5) obejmuje też aktywne setupy crypto weekend w trakcie działającej rutyny — `quote_get` vs SL/TP1/TP2/entry.
+
+**Ograniczenie szczerości mechanizmu:** system nie ma procesu-watchera między rutynami — wykrywalność Triggera B poza działającą rutyną jest ograniczona do kadencji rutyn (weekend co ~6–12h, scalp co 30 min). "Natychmiast" oznacza: w tym samym runie, w którym dotknięcie wykryto, nie odkładane na później. Timestamp zdarzenia zawsze z bar-walku, więc journal jest dokładny niezależnie od opóźnienia wykrycia.
+
+---
+
 ## 10. Box entry & freshness — DOUBLE CHECK (mandatory)
 
 Every setup has a BOX ENTRY: a rectangle with clear entry price range, SL, TP1/TP2/TP3 (if applicable), and a short entry reason.
@@ -733,6 +758,8 @@ Save to `screenshots/xau/`, `screenshots/trw/`, or `screenshots/crypto/` dependi
 ## 12. Setup lifecycle
 
 `detected` → `validated` → `published` → `active` → `hit` / `invalidated` / `missed` / `expired`.
+
+**Statusy zamknięcia z §9b (2026-07-19, crypto weekend + scalp XAU):** `EXPIRED_NO_ENTRY` (Trigger A — pending nie doszedł do entry przez sesję LUB cena minęła TP1 pre-trigger), `SL_HIT` / `TP1_HIT` / `TP2_HIT` (Trigger B — zamknięcie natychmiast przy wykryciu, timestamp z baru dotknięcia). Po każdym z tych statusów w tym samym runie następuje świeży scan i nowa karta (§9b).
 
 Never conflate a detected setup with a published one — a setup only becomes `published` once it clears the risk engine and is actually sent. Statistics must only ever count what was genuinely published, not every internal candidate.
 
