@@ -736,7 +736,7 @@ Wykonaj natychmiast po wyznaczeniu entry box, PRZED liczeniem confidence i PRZED
 2. **BLOKADA — nie generuj setupu jeśli:**
    - Cena już PRZESZŁA przez entry box (price < entry_lower dla SHORT lub > entry_upper dla LONG) → `status: missed/stale`, nie kandydat.
    - Cena jest AKTUALNIE W STREFIE (entry_lower ≤ price ≤ entry_upper) → setup „w trakcie" — nie publikuj jako nowy sygnał. Może być aktualizacją istniejącego active_setups.json entry.
-   - TP1 już osiągnięte (price past TP1 pre-trigger) → invalid.
+   - TP1 już osiągnięte (price past TP1 pre-trigger) → invalid. **(Ta sama reguła dla carry-over: §7 krok 2 warunek (c) → status `missed` — jeden mechanizm, dwa punkty egzekucji: Check 1 przy generowaniu, warunek (c) przy każdym bar-walku.)**
 
 ### Freshness Check 2 — tuż przed publikacją (before final screenshot + Telegram send)
 Wykonaj po każdym `chart_set_symbol`, tuż przed `capture_screenshot` i wysyłką:
