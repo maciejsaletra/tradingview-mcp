@@ -135,6 +135,19 @@ Assess: direction bias, volatility regime, session quality, confidence adjustmen
 
 **Macro conflict rule:** if DXY/VIX/news clearly oppose the technical direction → `macro_conflict: true`, lower confidence, prefer no signal. Mark in handoff.
 
+### 6.3a Pomiar driftu startu + progi decyzyjne (2026-07-20)
+
+Przy starcie każdej rutyny oblicz: **drift = (rzeczywisty czas startu, zweryfikowany `date -u` + żywy bar TV) − (nominalny czas slotu z §2, np. 15:00 — NIE czas cron+jitter)**. Zapisz wartość w handoff (pole KROK 0).
+
+| Drift | Działanie |
+|---|---|
+| ≤ 10 min | Normalny przebieg, brak dodatkowych działań |
+| > 10 min | **OBOWIĄZKOWA zaostrzona weryfikacja świeżości struktur** dla każdego generowanego sygnału — reguła świeżości strefy §10 aktywowana automatycznie, niezależnie od tego, czy §10 i tak by się stosował |
+| > 30 min | Dodatkowo: jawna linia ostrzegawcza w handoff: `⚠️ DRIFT >30min — start [HH:MM] vs nominalny [HH:MM]` |
+| > 60 min | Dodatkowo: CAŁY przebieg flagowany `delayed_run: true` — zaostrzone freshness (§10 reguła świeżości strefy) stosowane do KAŻDEGO sygnału z tego runu + adnotacja `⏱️ Delayed run` widoczna na wygenerowanych kartach |
+
+Progi kumulują się (drift 75 min = wszystkie trzy działania). Anomalie odpaleń PRZED slotem obsługiwane jak dotąd (KROK 0: odroczenie outputu slotowego). Jitter platformy (2–9 min) jest nieusuwalny — te progi kompensują go po stronie analizy, nie startu.
+
 ### 6.4 Krok 0 output (mandatory fields for every run)
 
 Before leaving Krok 0, record explicitly (in handoff and daily_journal):
@@ -754,6 +767,19 @@ Wykonaj po każdym `chart_set_symbol`, tuż przed `capture_screenshot` i wysyłk
 
 Oba checki obowiązkowe. Pominięcie Check 1 lub Check 2 = błąd proceduralny — loguj w daily_journal.
 
+### Reguła świeżości strefy (2026-07-20 — luka z sig-092)
+
+**Strefa entry dotknięta i OPUSZCZONA w kierunku TP w ciągu ostatnich 60 minut przed analizą ≠ świeży retest.**
+
+Warunek blokujący — wszystkie TRZY muszą być prawdziwe (sprawdzane bar-walkiem M5/M15 ostatnich 60 min, nie samym quote):
+1. Strefa entry dotknięta w oknie 60 min przed analizą.
+2. Cena WYSZŁA ze strefy **w kierunku TP** (nie SL, nie ruch boczny wewnątrz/przy strefie).
+3. Odległość aktualnej ceny od strefy ≥ **40% dystansu entry→TP1**.
+
+Jeśli wszystkie trzy prawdziwe → **SOFT FLAG (nie hard block na start):** publikuj z ostrzeżeniem w signals_log: `"flagged_possibly_stale": true` + linia `⚠️ flagged_possibly_stale` w handoff — zamiast automatycznego odrzucenia. **Faza obserwacyjna: zbierz dane z tygodnia** (ile flagowanych setupów faktycznie triggerowało vs zostało missed) przed decyzją o przełączeniu na hard block.
+
+**Aktywacja:** standardowo przy każdym Freshness Check 1 + AUTOMATYCZNIE przy drift > 10 min (§6.3a), niezależnie od standardowej ścieżki. (Przypadek wzorcowy: sig-092 — strefa 3987.94–3992.11 dotknięta 01:20–01:30 UK, opuszczona w górę, analiza 01:50 przy cenie 4002 = ~34% dystansu do TP1; warunki 1+2 spełnione, 3 graniczny — flaga by ostrzegła.)
+
 Drawing style (bez zmian): yellow bold rectangle, `{"linecolor":"#FFFF00","fillcolor":"#FFFF004D","linewidth":3,"linestyle":0,"showLabel":true,"text":"ENTRY","textcolor":"#000000","fontsize":14,"bold":true}`, projected forward in time from the last bar. Always verify with `capture_screenshot` that it actually rendered — `draw_shape` can return `success:true` without a visible shape if the CDP context is stale.
 
 ---
@@ -809,6 +835,7 @@ Mandatory on every new published setup (2026-07-06): `setup_type` ("A" = sweep-r
 **Dodatkowe pola obowiązkowe od 2026-07-17:**
 - Setup A: `confidence_components: { sweep_atr, choch_ratio, ote_deviation_pts, trigger_type }` — audyt scoringu (§7b E2, §8).
 - Setup B: `trend_exhaustion: true|false`, `exhaustion_atr_ratio: [liczba]` — filtr wyczerpania (§7b E2).
+- Freshness (2026-07-20): `flagged_possibly_stale: true` gdy reguła świeżości strefy (§10) strzeli — soft flag, faza obserwacyjna; `delayed_run: true` na sygnałach z przebiegu o drift >60 min (§6.3a).
 - Scalp XAU: `strategy_type: "scalp_xau"` (odrębne od `"xau_daytrading"`), `trigger_type: "m3"|"m5_fallback"`, `structural_significance: false`, `late_window_entry: true|false`, `session_close_by: "03:20|10:20|15:20 UK"` (§7b E7, §7 krok 6.5, 2026-07-18).
 
 ### `journal/results_log.jsonl` fields
