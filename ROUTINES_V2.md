@@ -220,7 +220,7 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
    d. Freshness Check 1 przy generowaniu (§10): entry box musi być PRZED aktualną ceną, nie „w trakcie", nie wsteczny.
    e. Wynik XAU — **GWARANCJA 1 SETUP KAŻDA SESJA (2026-07-18):**
       - Jeśli setup świeży + confidence ≥60 + poza oknem NO-ENTRY → kandydat XAU → temat `xau`.
-      - Jeśli brak setupu ≥60 → zastosuj degradację confidence 60→50→40→30 (mechanizm identyczny jak §7 krok 8c Krok 5a-b), wyłącznie na H1/M15/M5. Przy braku struktury nawet na 30 → najbliższy dostępny swing H1 z etykietą `Niska jakość — publikacja z tytułu gwarancji sesyjnej (confidence: [wartość])`. XAU zawsze ma dokładnie 1 setup z kompletnymi Entry/SL/TP1 na karcie sesji.
+      - Jeśli brak setupu ≥60 → zastosuj degradację confidence 60→50→40→30 (mechanizm identyczny jak §7 krok 8c Krok 5a-b), wyłącznie na H1/M15/M5. Przy braku struktury nawet na 30 → najbliższy dostępny swing H1 z etykietą `Niska jakość — publikacja z tytułu gwarancji sesyjnej (confidence: [wartość])`. XAU zawsze ma dokładnie 1 setup z kompletnymi Entry/SL/TP1 na karcie sesji (wyjątek: skip z filtru kierunkowego 5b-1, jawnie logowany).
       - Jedyny przypadek odroczenia: aktywne okno NO-ENTRY w momencie publikacji → opublikuj setup natychmiast po końcu okna (w tej samej sesji), z adnotacją czasu.
    f. XAU nie wlicza się do puli TOP 3 (§9 cap).
    g. Sprawdź RSI H4 XAUUSD (§7c) — osobny trigger swing, niezależny od powyższego setupu intraday.
@@ -243,9 +243,17 @@ Before leaving Krok 0, record explicitly (in handoff and daily_journal):
       TOP 3 = ZAWSZE dokładnie 3 setupy każda sesja. XAU = ZAWSZE dokładnie 1 setup każda sesja (§7 krok 7e). Próg confidence 60 pozostaje standardem jakości, ale NIE może być powodem zwrócenia mniej niż wymagana liczba setupów.
 
       - **Krok 5a — degradacja progu:** jeśli po Krokach 1–4 liczba setupów < wymagana → NIE zatrzymuj się. Obniżaj próg confidence stopniowo: **60 → 50 → 40 → 30**, skanując wyłącznie **H1/M15/M5** (bez D1/H4), aż znajdziesz brakującą liczbę setupów z policzalnym Entry/SL/TP.
-      - **Krok 5b — ostatnia struktura:** jeśli nawet przy confidence 30 brak strefy OB/FVG lub swinga do OTE → użyj najbliższej dostępnej struktury (nawet starszy swing high/low na H1), z jawną etykietą: `Niska jakość — publikacja z tytułu gwarancji sesyjnej (confidence: [wartość])`.
+      - **Krok 5b — ostatnia struktura (rozszerzony 2026-07-20 po incydencie sig-097):** jeśli nawet przy confidence 30 brak strefy OB/FVG lub swinga do OTE → użyj najbliższej dostępnej struktury (nawet starszy swing high/low na H1), z jawną etykietą: `Niska jakość — publikacja z tytułu gwarancji sesyjnej (confidence: [wartość])` — ALE dopiero po przejściu obu poniższych wymogów:
+
+        **5b-1. FILTR ZGODNOŚCI CHARAKTERU STREFY Z KIERUNKIEM (obowiązkowy PRZED wyborem struktury):**
+        - **Bearish OB / supply zone → dozwolony tylko SHORT**, LUB LONG wyłącznie jeśli nastąpił potwierdzony flip: **M15 close POWYŻEJ całej strefy** (nie dotknięcie, nie wick).
+        - **Bullish OB / demand zone → dozwolony tylko LONG**, LUB SHORT wyłącznie po potwierdzonym flipie w dół: **M15 close PONIŻEJ całej strefy**.
+        - Jeśli "najbliższa niewykorzystana struktura" nie przechodzi tego testu → szukaj dalej (starszy swing/OB w tym samym kierunku).
+        - Jeśli po odrzuceniu wszystkich niezgodnych stref nie zostaje ŻADNA sensowna struktura → **slot gwarancji SKIPUJE publikację w tej sesji** (analogicznie do standardowego STOP), zamiast sięgać po coraz słabsze kandydatury tylko by wypełnić kwotę. Skip zapisz explicite w karcie sesji i handoff: `Slot gwarancji pominięty — brak struktury zgodnej kierunkowo (filtr 5b-1)`. (To jedyny dopuszczalny wyjątek od "zawsze 3+1" / "BTC=1" — świadomy, logowany, wynikający z filtru jakościowego, nie z lenistwa skanu.)
+
+        **5b-2. OBOWIĄZKOWY DUAL-SCAN LOG:** dla KAŻDEGO slotu gwarancji handoff/journal MUSI zawierać wpis: `"Skan obu kierunków: LONG=[wynik + przyczyna wyboru/odrzucenia], SHORT=[wynik + przyczyna wyboru/odrzucenia]"` — obowiązkowy niezależnie od finalnego wyniku; nawet gdy druga strona nie miała żadnej struktury, musi to być zapisane explicite, nigdy domyślnie/pominięte. Cel: audyt nie może zgadywać, czy druga strona była sprawdzona.
       - **Krok 5c — zakaz D1/H4 w degradacji:** mechanizm degradacji NIGDY nie sięga po D1/H4 w celu wypełnienia gwarancji liczby — wyłącznie H1/M15/M5. (Od 2026-07-18 D1/H4 są zakazane w całej logice TOP 3/XAU — patrz Krok 4 wyżej — więc degradacja to JEDYNY mechanizm uzupełniania liczby.)
-      - **Krok 5d — karta zawsze pełna:** karta sesji zawsze wyświetla 3 wiersze TOP 3 + 1 wiersz XAU z kompletnymi Entry/SL/TP1 — zero pustych pól, zero "brak setupu", zero "niekompletne".
+      - **Krok 5d — karta zawsze pełna:** karta sesji zawsze wyświetla 3 wiersze TOP 3 + 1 wiersz XAU z kompletnymi Entry/SL/TP1 — zero pustych pól, zero "brak setupu", zero "niekompletne". Jedyny wyjątek: skip slotu z filtru kierunkowego 5b-1 — jawnie logowany na karcie i w handoff.
       - Hard-blocks E4 pozostają w mocy dla gwarancji z JEDNYM wyjątkiem: blok "Low confidence <60" nie stosuje się do slotów gwarancji (zastępuje go drabinka 5a). Freshness, NO-ENTRY window, duplicate, entry-in-zone, SL arbitralny — bezwzględne również dla gwarancji.
 
    d. Każdy do właściwego tematu Telegram wg routingu §3.
@@ -632,7 +640,7 @@ Every published setup needs a `reason_short` with the 2-4 factors that drove the
 - **XAU RSI H4 swing (§7c) + swing (§7d):** max 1 aktywny swing per instrument. Swing nie wlicza się do intraday cap.
 - **TRW TOP 3 (watchlista bez złota):** maks 3 intraday setups per routine. Swing (§7d) na non-XAU instrumentach to osobna pula — nie wchodzi do limitu 3. **Scalp (Strategia C, moduł "na dzień dobry") NIE wlicza się do capu TOP 3 (max 3) — działa jako osobny slot P5, niezależny od limitu watchlisty (2026-07-18).**
 - **Weekend crypto (2026-07-18 — zastępuje "max 2 key setups" bez dolnego limitu):**
-  - **BTCUSDT: ZAWSZE dokładnie 1 setup na każdej sesji weekendowej** (Sat 02:30 / 14:00 / 20:00, Sun 02:30 / 14:00 / 20:00) — analogicznie do gwarancji XAU w dni robocze. Mechanizm degradacji confidence 60→50→40→30 wyłącznie na H1/M15/M5, identyczny jak §7 krok 8c Krok 5a-b; przy braku struktury nawet na 30 → najbliższy swing H1 z etykietą `Niska jakość — gwarancja sesyjna (confidence: X)`. Zakaz sięgania po D1/H4 (§4 wiersz Crypto weekend).
+  - **BTCUSDT: ZAWSZE dokładnie 1 setup na każdej sesji weekendowej** (Sat 02:30 / 14:00 / 20:00, Sun 02:30 / 14:00 / 20:00) — analogicznie do gwarancji XAU w dni robocze. Mechanizm degradacji confidence 60→50→40→30 wyłącznie na H1/M15/M5, identyczny jak §7 krok 8c Krok 5a-b; przy braku struktury nawet na 30 → najbliższy swing H1 z etykietą `Niska jakość — gwarancja sesyjna (confidence: X)`, po przejściu filtru zgodności kierunkowej 5b-1 i z dual-scan logiem 5b-2 (§7 krok 8c). Zakaz sięgania po D1/H4 (§4 wiersz Crypto weekend).
   - **Watchlista crypto poza BTC (ETH/XRP/SOL/DOGE): max 2 dodatkowe setupy per routine, BEZ wymuszonej gwarancji** — cisza przy braku jakości pozostaje akceptowalna (thin weekend liquidity).
 If more candidates qualify, keep only the highest quality/clarity-to-risk ones.
 
