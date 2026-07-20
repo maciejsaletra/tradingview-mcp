@@ -1,6 +1,6 @@
 import { register } from '../router.js';
 import { composeCard, renderHtml, fillCarryoverTemplate, validateM15Screenshot, getSessionTag } from '../../core/card.js';
-import { existsSync, readdirSync, statSync } from 'fs';
+import { existsSync, readdirSync, statSync, readFileSync } from 'fs';
 import { join, resolve } from 'path';
 
 register('card', {
@@ -15,13 +15,37 @@ register('card', {
       handler: async (opts) => ({ success: true, path: await composeCard(opts.screenshot, opts.out) }),
     }],
     ['render', {
-      description: 'Render an HTML signal card to a PNG image using Puppeteer',
+      description: 'Render an HTML signal card to a PNG image using Puppeteer. FAILS if the HTML still contains unfilled <PLACEHOLDER> tokens (sig-101..104 incident, 2026-07-20) — pass --force to override (logged).',
       options: {
         html:  { type: 'string', description: 'Path to the HTML file to render' },
         out:   { type: 'string', description: 'Output path for the rendered PNG' },
         width: { type: 'string', description: 'Viewport width in px (default: 900)' },
+        force: { type: 'boolean', description: 'Render despite unfilled placeholders (use only for tests/mockups; usage is logged in the result)' },
       },
-      handler: async (opts) => ({ success: true, path: await renderHtml(opts.html, opts.out, Number(opts.width) || 900) }),
+      handler: async (opts) => {
+        if (!opts.html) throw new Error('--html required');
+        const htmlAbs = resolve(opts.html);
+        if (!existsSync(htmlAbs)) throw new Error(`File not found: ${htmlAbs}`);
+        // Placeholder guard: raw commercial-template tokens like <ENTRY_LOW>, <SL>, <TP1>
+        // must never reach a rendered/published card. {2,} catches the 2-char <SL>.
+        const html = readFileSync(htmlAbs, 'utf8');
+        const leftovers = [...new Set(html.match(/<[A-Z_0-9]{2,}>(?![^<]*<\/(?:script|style)>)/g) || [])]
+          .filter((t) => !/^<(BR|HR|TD|TR|TH|UL|OL|LI|EM|B|I|P|H[1-6])>$/.test(t));
+        if (leftovers.length && !opts.force) {
+          throw new Error(
+            `PLACEHOLDER VALIDATION FAILED — ${leftovers.length} unfilled token(s) in ${opts.html}: ` +
+            `${leftovers.join(', ')}. Fill the template first (every <TOKEN> must be replaced). ` +
+            `Use --force ONLY for internal tests/mockups, never for published cards.`
+          );
+        }
+        const path = await renderHtml(opts.html, opts.out, Number(opts.width) || 900);
+        return {
+          success: true,
+          path,
+          placeholder_check: leftovers.length ? 'BYPASSED_WITH_FORCE' : 'clean',
+          ...(leftovers.length ? { forced_despite_leftovers: leftovers } : {}),
+        };
+      },
     }],
     ['validate-screenshot', {
       description: 'Validate a screenshot against §7b M15 standard (filename, _meta.json, TF, entry_box, sl, tp)',
