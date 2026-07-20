@@ -42,14 +42,14 @@ D1 i H4 są **KATEGORYCZNIE ZAKAZANE** w logice i na kartach day tradingu (TOP 3
 - `Niska jakość — publikacja z tytułu gwarancji sesyjnej (confidence: X)` — Krok 5b, ostatnia struktura
 - Etykiety `rozszerzona rama H4/D1` WYCOFANE (2026-07-18) — D1/H4 kategorycznie zakazane w TOP 3/XAU; fallback ramy nie istnieje.
 
-**Scalp XAU (Strategia C) — WYŁĄCZNIE XAUUSD, równoległe rutyny trw2-scalp-xau-* (2026-07-18), okna 2h: Asia 01:20–03:20 / London 08:20–10:20 / NY 13:20–15:20 UK:**
+**Scalp XAU (Strategia C) — WYŁĄCZNIE XAUUSD, równoległe rutyny trw2-scalp-xau-* (2026-07-18), okna: Asia 02:20–04:10 / London 10:00–11:50 / NY 13:00–14:50 UK (rozłączne z rutynami sesyjnymi):**
 - Instrument: zawsze i wyłącznie XAUUSD — żadnej watchlisty, żadnych innych instrumentów.
 - TF: M15 bias → M5 struktura → M3 trigger (primary) lub M5 close fallback po 3 świecach.
 - **Progi (złagodzone 2026-07-18):** confidence ≥60 (ujednolicone z systemem, bez drabinki degradacji — poniżej 60 = cisza), RR TP1 ≥1.5 (odrzucenie poniżej niezależnie od confidence). Entry = przecięcie OB/FVG M5 z zakresem **Fibo 0.5–0.7 (Golden Pocket jako przedział, nie punkt 0.618)**; confluence min. 3 elementy wciąż wymagane mimo szerszej strefy.
 - D1/H4/H1 całkowicie nieużywane — zero wpływu na confidence scalpa.
 - Routing Telegram: **WYŁĄCZNIE temat "SCALPING XAU"** (`--topic scalp_xau`, thread 2851) — nigdy temat `xau`.
 - Routing do swing: przez `structural_significance: true` (oceniane poza modułem scalp), NIE przez wysokość confidence. Scalp z confidence 78 pozostaje scalpem jeśli brak cech strukturalnych swing.
-- Na karcie scalpa: oznacz `strategy_type: "scalp_xau"`, `trigger_type` (M3/M5_fallback), `session_close_by` (03:20/10:20/15:20 UK) i `late_window_entry` jeśli wejście w ostatnich 30 min okna.
+- Na karcie scalpa: oznacz `strategy_type: "scalp_xau"`, `trigger_type` (M3/M5_fallback), `session_close_by` (04:10/11:50/14:50 UK) i `late_window_entry` jeśli wejście w ostatnich 30 min okna.
 
 **SL:** strukturalny, za ekstremum struktury/OB/sweep; zakaz ustawiania SL jedynie wg R:R.
 
@@ -139,7 +139,7 @@ TRADING ROOM WORKSHOP
 ## ZASADY I ZAKAZY
 
 - **D1/H4 KATEGORYCZNIE ZAKAZANE na kartach day tradingu (2026-07-18)** — żadnych odniesień, kafelków, "background", HTF POI ani confluence z D1/H4. Wyłącznie karty swing używają D1/H4.
-- **SEKCJA SCALP (M15/M5/M3):** generuj TYLKO gdy istnieje realny sygnał scalp — `active_setups.json` ma `strategy_type:"scalp_xau"` LUB wystąpił override trigera M5 z modułu CONFLUENCE i okno scalp (Asia 01:20–03:20 / London 08:20–10:20 / NY 13:20–15:20 UK) jest aktywne. Zakaz generowania sekcji "scalp" z adnotacją "brak sygnału" / "nie dotyczy tej sesji" / "brak setupu".
+- **SEKCJA SCALP (M15/M5/M3):** generuj TYLKO gdy istnieje realny sygnał scalp — `active_setups.json` ma `strategy_type:"scalp_xau"` LUB wystąpił override trigera M5 z modułu CONFLUENCE i okno scalp (Asia 02:20–04:10 / London 10:00–11:50 / NY 13:00–14:50 UK) jest aktywne. Zakaz generowania sekcji "scalp" z adnotacją "brak sygnału" / "nie dotyczy tej sesji" / "brak setupu".
 - **SEKCJA SWING:** generuj TYLKO gdy istnieje realny sygnał swing — `active_setups.json` ma `lifecycle:"swing"` lub `lifecycle:"day_trade"` z wyraźną intencją carry-over. Zakaz generowania sekcji "swing" z adnotacją "brak sygnału" / "monitoring" / "nie analizowano".
 - Zasada ogólna: **każda sekcja na karcie reprezentuje realny sygnał, nie slot do wypełnienia.** Jeśli brak sygnału danego typu → sekcja nie istnieje na karcie.
 - Zakaz Fibo 0–33% jako strefy entry.
