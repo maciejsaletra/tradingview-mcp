@@ -1,8 +1,8 @@
 {
   "_meta": {
     "schema_version": "2.2",
-    "last_updated": "2026-07-19T06:50:00Z",
-    "note": "S9b TRIGGER A RESOLUTION 2026-07-19 (manual session with Magic): sig-089 BTCUSDT LONG -> EXPIRED_NO_ENTRY. Entry zone 63673.63-63840.80 never touched (post-pub min low 63963.00 @ 13:35Z 07-18); price crossed TP1 64274.47 pre-trigger @ bar 17:10Z 07-18 and TP2 @ 17:40Z, rallied to 64967 - thesis consumed without a position. Full record in results_log.jsonl (rr 0, event-bar timestamps). NEXT RUN (trw2-crypto-sun-mid 14:00 UK): BTC=1 weekend guarantee requires a FRESH BTC scan and new card on current structure (S9b Trigger A pkt 5) - do not resurrect sig-089 levels. New rules S9b active: Trigger A (session-start expiry of stale pendings incl. TP1-crossed-pre-trigger) + Trigger B (SL/TP touch -> immediate close with bar timestamp + same-run fresh scan + new card); par.9a expiry remains fallback only.",
+    "last_updated": "2026-07-23T14:29:00Z",
+    "note": "trw2-newyork (2026-07-23, nominal 15:00 UK, actual start ~15:09 UK/14:09 UTC, drift ~9min - within normal tolerance). Carry-over bar-walk on all 5 London setups resolved a rough-then-strong run: sig-123 JP225 SL_HIT (bar 12:30Z, low 65649.5 vs SL 65750), sig-126 XAUUSD MISSED (TP1 pre-trigger @ 11:30Z, low 4073.2 - entry zone 4110.61-4115.84 never touched, thesis validated to TP2 anyway), sig-128 NAS100 SL_HIT (bar 09:00Z, high 28971.6 vs SL 28965, whipsaw before the broader move resumed), sig-127 GER40 TP2_HIT (TP1 12:45Z close 24846, TP2 13:00-13:15Z close 24756.5) and sig-129 SP500 TP2_HIT (TP1 12:30Z close 7441.45, TP2 13:00Z close 7429.2) both ran cleanly to both targets. Peak loss streak hit 4 in a row intraday (07:00-12:30 UTC chronological resolution order) before being broken by the two TP2 wins around 13:00 UTC - current streak at publication time is 0 (informational only, no gating, see loss-streak flag rule). Krok 0: DXY 101.466 (up from London 101.03), VIX 19.02 (up from 17.75, regime shifting toward elevated but not fear), macro_conflict false. ECB Main Refinancing Rate + Press Conference (13:15/13:45 UK) both published during the gap - held rates unchanged at 2.40% exactly matching forecast, no surprise/reaction, outside NO-ENTRY window by publication time. WebSearch confirms continued Middle East escalation (US strikes on Iran, Houthi attacks on Saudi tankers, Strait of Hormuz/Red Sea blockade risk) and hawkish Fed repricing (78% probability of September hike) - both themes from the London run are intact and strengthening. XAU guarantee slot refilled fresh (sig-130 SHORT, standard-tier confidence 76, no degradation needed) after sig-126 resolved. TOP3 guarantee met with 3 standard-tier fresh candidates: sig-131 DJ30 SHORT, sig-132 EURUSD SHORT, sig-133 USDJPY LONG (directional diversification - USD strength drove EUR/gold down but JPY down too, i.e. USDJPY up - correctly followed the macro logic rather than forcing all-SHORT). UKOIL still fully parabolic (now +17.89% over the tracked window), continued swing-watch only, not published, unchanged conclusion from Asia/London. RSI H4/H1 XAUUSD still unreadable via data_get_study_values (no RSI indicator active on any chart this run) - now 15th+ consecutive session.",
     "scenario_schema": {
       "trigger_types": [
         "close_above",
@@ -12,15 +12,372 @@
         "zone_reclaim"
       ],
       "sl_update_direction_rule": "reduce_risk_only: LONG -> new_sl > current_sl AND new_sl < entry_lower; SHORT -> new_sl < current_sl AND new_sl > entry_upper",
-      "screenshot_m15_path_doc": "Path to the §7b M15 standard screenshot. Must be <id>_m15_standard_<ts>.png with companion _meta.json (TF=15, has_entry_box, has_sl_line, has_tp_lines). Written by bar-walk after capture_screenshot. H1 or non-standard screenshots must NOT be stored here -- use null until §7b is run.",
+      "screenshot_m15_path_doc": "Path to the SS7b M15 standard screenshot. Must be <id>_m15_standard_<ts>.png with companion _meta.json (TF=15, has_entry_box, has_sl_line, has_tp_lines). Written by bar-walk after capture_screenshot. H1 or non-standard screenshots must NOT be stored here -- use null until SS7b is run.",
       "flags_doc": {
         "applied": "set true once trigger fires -- prevents re-application",
         "one_shot": "always true -- each scenario fires at most once",
         "disabled": "set true by mutually_exclusive_with when a sibling fires",
         "mutually_exclusive_with": "list of scenario keys to disable when this one fires"
       },
-      "precondition_doc": "optional -- a bar matching precondition type/level must appear BEFORE the main trigger bar (chronological order)"
+      "precondition_doc": "optional -- a bar matching precondition type/level must appear BEFORE the main trigger bar (chronological order enforced)"
     }
   },
-  "active_setups": []
+  "active_setups": [
+    {
+      "id": "sig-130",
+      "instrument": "XAUUSD",
+      "group": "xau",
+      "strategy_type": "xau_daytrading",
+      "lifecycle": "day_trade",
+      "direction": "SHORT",
+      "setup_type": "B",
+      "status": "pending",
+      "guarantee_slot": true,
+      "entry_lower": 4057,
+      "entry_upper": 4061.6,
+      "sl": 4069.5,
+      "tp1": 4038,
+      "tp2": 4020,
+      "tp3": null,
+      "confidence": 76,
+      "confidence_components": {
+        "trend_exhaustion": false,
+        "exhaustion_atr_ratio": 0.85,
+        "ote_deviation_pts": 0,
+        "trigger_type": "m15_impulse_ote"
+      },
+      "rr_planned": 2.09,
+      "risk_pct": 0.5,
+      "news_risk": "none",
+      "news_context": "ECB events both published, held rates unchanged matching forecast, no reaction, outside NO-ENTRY window.",
+      "loss_streak_today": 0,
+      "flagged_possibly_stale": false,
+      "sl_updated": false,
+      "screenshot_m15_path": "screenshots/xau/sig-130_chart.png",
+      "reason_short": "XAU guarantee slot. M15 down-impulse 4067.415->4040.185 (13:30-14:00 UTC), OTE 0.618-0.786 pullback zone 4057.00-4061.60 with Liquidity Swings pine-box confluence. Prior guarantee setup (sig-126) missed via TP1 pre-trigger this run. Dual-scan: LONG=blocked (filtr 5b-1, no bullish M15 close above the bearish structure, marginal lower lows off the 4040 double-bottom only), SHORT=valid Setup B continuation, local swing-origin exhaustion ratio 0.85 (not exhausted).",
+      "scenarios": {
+        "a": {
+          "label": "M15 close below 4038.00 (TP1) - momentum confirmation, trail runner",
+          "probability_pct": 30,
+          "trigger": {
+            "type": "close_below",
+            "level": 4038,
+            "timeframe": "M15"
+          },
+          "sl_update": {
+            "type": "absolute",
+            "value": 4062,
+            "direction": "reduce_risk_only"
+          },
+          "tp_updates": null,
+          "flags": {
+            "applied": false,
+            "one_shot": true,
+            "disabled": false,
+            "mutually_exclusive_with": [
+              "b"
+            ]
+          }
+        },
+        "b": {
+          "label": "observational - price runs without full retest",
+          "trigger": null,
+          "flags": {
+            "applied": false,
+            "one_shot": true,
+            "disabled": false,
+            "mutually_exclusive_with": [
+              "a"
+            ]
+          }
+        },
+        "c": {
+          "label": "structure violated - M15 close above 4069.50 SL",
+          "trigger": {
+            "type": "close_above",
+            "level": 4069.5,
+            "timeframe": "M15"
+          },
+          "flags": {
+            "applied": false,
+            "one_shot": true,
+            "disabled": false,
+            "action_on_trigger": "flag_for_manual_review",
+            "action_note": "XAU sig-130 structure invalidated"
+          }
+        }
+      },
+      "session_name": "trw2-newyork",
+      "created_at": "2026-07-23T14:29:00Z",
+      "published_at": "2026-07-23T14:29:00Z",
+      "last_checked_at": "2026-07-23T14:29:00Z"
+    },
+    {
+      "id": "sig-131",
+      "instrument": "DJ30",
+      "group": "indeksy",
+      "strategy_type": "top3_daytrading",
+      "lifecycle": "day_trade",
+      "direction": "SHORT",
+      "setup_type": "B",
+      "status": "pending",
+      "guarantee_slot": false,
+      "entry_lower": 51825.6,
+      "entry_upper": 51870.8,
+      "sl": 51940,
+      "tp1": 51610,
+      "tp2": 51500,
+      "tp3": null,
+      "confidence": 78,
+      "confidence_components": {
+        "trend_exhaustion": false,
+        "exhaustion_atr_ratio": 1.48,
+        "ote_deviation_pts": 0,
+        "trigger_type": "m15_impulse_ote"
+      },
+      "rr_planned": 2.6,
+      "risk_pct": 0.5,
+      "news_risk": "none",
+      "news_context": "No High Impact USD event pending this window.",
+      "loss_streak_today": 0,
+      "flagged_possibly_stale": false,
+      "sl_updated": false,
+      "screenshot_m15_path": "screenshots/indeksy/sig-131_chart.png",
+      "reason_short": "H1/M15 sustained downtrend continuation, same macro driver as the London index shorts. Fresh M15 impulse 51928.43->51659.43 (13:30-14:15 UTC), OTE pullback entry 51825.60-51870.80 ahead of current price (~51714). Dual-scan: LONG=blocked (no bullish reclaim, sustained lower lows), SHORT=valid Setup B continuation.",
+      "scenarios": {
+        "a": {
+          "label": "M15 close below 51610.00 (TP1) - momentum confirmation, trail runner",
+          "probability_pct": 30,
+          "trigger": {
+            "type": "close_below",
+            "level": 51610,
+            "timeframe": "M15"
+          },
+          "sl_update": {
+            "type": "absolute",
+            "value": 51900,
+            "direction": "reduce_risk_only"
+          },
+          "tp_updates": null,
+          "flags": {
+            "applied": false,
+            "one_shot": true,
+            "disabled": false,
+            "mutually_exclusive_with": [
+              "b"
+            ]
+          }
+        },
+        "b": {
+          "label": "observational - price runs without full retest",
+          "trigger": null,
+          "flags": {
+            "applied": false,
+            "one_shot": true,
+            "disabled": false,
+            "mutually_exclusive_with": [
+              "a"
+            ]
+          }
+        },
+        "c": {
+          "label": "structure violated - M15 close above 51940.00 SL",
+          "trigger": {
+            "type": "close_above",
+            "level": 51940,
+            "timeframe": "M15"
+          },
+          "flags": {
+            "applied": false,
+            "one_shot": true,
+            "disabled": false,
+            "action_on_trigger": "flag_for_manual_review",
+            "action_note": "DJ30 sig-131 structure invalidated"
+          }
+        }
+      },
+      "session_name": "trw2-newyork",
+      "created_at": "2026-07-23T14:29:00Z",
+      "published_at": "2026-07-23T14:29:00Z",
+      "last_checked_at": "2026-07-23T14:29:00Z"
+    },
+    {
+      "id": "sig-132",
+      "instrument": "EURUSD",
+      "group": "waluty",
+      "strategy_type": "top3_daytrading",
+      "lifecycle": "day_trade",
+      "direction": "SHORT",
+      "setup_type": "B",
+      "status": "pending",
+      "guarantee_slot": false,
+      "entry_lower": 1.13774,
+      "entry_upper": 1.13811,
+      "sl": 1.1387,
+      "tp1": 1.136,
+      "tp2": 1.1345,
+      "tp3": null,
+      "confidence": 72,
+      "confidence_components": {
+        "trend_exhaustion": false,
+        "exhaustion_atr_ratio": 0.81,
+        "ote_deviation_pts": 0,
+        "trigger_type": "m15_impulse_ote"
+      },
+      "rr_planned": 2.48,
+      "risk_pct": 0.5,
+      "news_risk": "none",
+      "news_context": "ECB events both published, held rates unchanged matching forecast, no reaction, outside NO-ENTRY window.",
+      "loss_streak_today": 0,
+      "flagged_possibly_stale": false,
+      "sl_updated": false,
+      "screenshot_m15_path": "screenshots/waluty/sig-132_chart.png",
+      "reason_short": "H1/M15 sustained EURUSD decline tracking broad DXY strength (hawkish Fed repricing). Fresh M15 impulse 1.13858->1.13638, OTE pullback entry 1.13774-1.13811 ahead of current price (~1.13702). Dual-scan: LONG=blocked (no bullish reclaim), SHORT=valid Setup B continuation.",
+      "scenarios": {
+        "a": {
+          "label": "M15 close below 1.13600 (TP1) - momentum confirmation, trail runner",
+          "probability_pct": 30,
+          "trigger": {
+            "type": "close_below",
+            "level": 1.136,
+            "timeframe": "M15"
+          },
+          "sl_update": {
+            "type": "absolute",
+            "value": 1.1384,
+            "direction": "reduce_risk_only"
+          },
+          "tp_updates": null,
+          "flags": {
+            "applied": false,
+            "one_shot": true,
+            "disabled": false,
+            "mutually_exclusive_with": [
+              "b"
+            ]
+          }
+        },
+        "b": {
+          "label": "observational - price runs without full retest",
+          "trigger": null,
+          "flags": {
+            "applied": false,
+            "one_shot": true,
+            "disabled": false,
+            "mutually_exclusive_with": [
+              "a"
+            ]
+          }
+        },
+        "c": {
+          "label": "structure violated - M15 close above 1.13870 SL",
+          "trigger": {
+            "type": "close_above",
+            "level": 1.1387,
+            "timeframe": "M15"
+          },
+          "flags": {
+            "applied": false,
+            "one_shot": true,
+            "disabled": false,
+            "action_on_trigger": "flag_for_manual_review",
+            "action_note": "EURUSD sig-132 structure invalidated"
+          }
+        }
+      },
+      "session_name": "trw2-newyork",
+      "created_at": "2026-07-23T14:29:00Z",
+      "published_at": "2026-07-23T14:29:00Z",
+      "last_checked_at": "2026-07-23T14:29:00Z"
+    },
+    {
+      "id": "sig-133",
+      "instrument": "USDJPY",
+      "group": "waluty",
+      "strategy_type": "top3_daytrading",
+      "lifecycle": "day_trade",
+      "direction": "LONG",
+      "setup_type": "B",
+      "status": "pending",
+      "guarantee_slot": false,
+      "entry_lower": 163.784,
+      "entry_upper": 163.822,
+      "sl": 163.72,
+      "tp1": 163.962,
+      "tp2": 164.1,
+      "tp3": null,
+      "confidence": 73,
+      "confidence_components": {
+        "trend_exhaustion": false,
+        "exhaustion_atr_ratio": 0.44,
+        "ote_deviation_pts": 0,
+        "trigger_type": "m15_impulse_ote"
+      },
+      "rr_planned": 1.92,
+      "risk_pct": 0.5,
+      "news_risk": "none",
+      "news_context": "No High Impact JPY event pending this window.",
+      "loss_streak_today": 0,
+      "flagged_possibly_stale": false,
+      "sl_updated": false,
+      "screenshot_m15_path": "screenshots/waluty/sig-133_chart.png",
+      "reason_short": "H1/M15 sustained USDJPY uptrend tracking broad DXY strength (hawkish Fed repricing dominating over JPY safe-haven flows). Fresh M15 impulse 163.735->163.962, OTE pullback entry 163.784-163.822 ahead of current price (~163.935). Dual-scan: SHORT=blocked (no bearish reclaim, sustained higher highs), LONG=valid Setup B continuation.",
+      "scenarios": {
+        "a": {
+          "label": "M15 close above 163.962 (TP1) - momentum confirmation, trail runner",
+          "probability_pct": 30,
+          "trigger": {
+            "type": "close_above",
+            "level": 163.962,
+            "timeframe": "M15"
+          },
+          "sl_update": {
+            "type": "absolute",
+            "value": 163.75,
+            "direction": "reduce_risk_only"
+          },
+          "tp_updates": null,
+          "flags": {
+            "applied": false,
+            "one_shot": true,
+            "disabled": false,
+            "mutually_exclusive_with": [
+              "b"
+            ]
+          }
+        },
+        "b": {
+          "label": "observational - price runs without full retest",
+          "trigger": null,
+          "flags": {
+            "applied": false,
+            "one_shot": true,
+            "disabled": false,
+            "mutually_exclusive_with": [
+              "a"
+            ]
+          }
+        },
+        "c": {
+          "label": "structure violated - M15 close below 163.720 SL",
+          "trigger": {
+            "type": "close_below",
+            "level": 163.72,
+            "timeframe": "M15"
+          },
+          "flags": {
+            "applied": false,
+            "one_shot": true,
+            "disabled": false,
+            "action_on_trigger": "flag_for_manual_review",
+            "action_note": "USDJPY sig-133 structure invalidated"
+          }
+        }
+      },
+      "session_name": "trw2-newyork",
+      "created_at": "2026-07-23T14:29:00Z",
+      "published_at": "2026-07-23T14:29:00Z",
+      "last_checked_at": "2026-07-23T14:29:00Z"
+    }
+  ]
 }

@@ -2,6 +2,7 @@
  * Core data access logic.
  */
 import { evaluate, evaluateAsync, KNOWN_PATHS, safeString } from '../connection.js';
+import { setSymbol } from './chart.js';
 
 const MAX_OHLCV_BARS = 500;
 const MAX_TRADES = 20;
@@ -242,7 +243,17 @@ export async function getEquity() {
   return { success: true, data_points: equity?.data?.length || 0, source: equity?.source, data: equity?.data || [], equity_summary: equity?.equity_summary, note: equity?.note, error: equity?.error };
 }
 
+function normalizeSymbol(s) {
+  return String(s || '').toUpperCase().replace(/^[A-Z.]+:/, '');
+}
+
 export async function getQuote({ symbol } = {}) {
+  if (symbol) {
+    const current = await evaluate(`(function(){ try { return ${CHART_API}.symbol(); } catch(e) { return null; } })()`);
+    if (normalizeSymbol(current) !== normalizeSymbol(symbol)) {
+      await setSymbol({ symbol });
+    }
+  }
   const data = await evaluate(`
     (function() {
       var api = ${CHART_API};
