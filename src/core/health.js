@@ -1,11 +1,23 @@
 /**
  * Core health/discovery/launch logic.
  */
-import { getClient, getTargetInfo, evaluate } from '../connection.js';
-import { existsSync } from 'fs';
-import { execSync, spawn } from 'child_process';
+import { getClient as _getClient, getTargetInfo as _getTargetInfo, evaluate as _evaluate } from '../connection.js';
+import { existsSync as _existsSync } from 'fs';
+import { execSync as _execSync, spawn as _spawn } from 'child_process';
 
-export async function healthCheck() {
+function deps(d) {
+  return {
+    getClient: d?.getClient ?? _getClient,
+    getTargetInfo: d?.getTargetInfo ?? _getTargetInfo,
+    evaluate: d?.evaluate ?? _evaluate,
+    existsSync: d?.existsSync ?? _existsSync,
+    execSync: d?.execSync ?? _execSync,
+    spawn: d?.spawn ?? _spawn,
+  };
+}
+
+export async function healthCheck({ _deps } = {}) {
+  const { getClient, getTargetInfo, evaluate } = deps(_deps);
   await getClient();
   const target = await getTargetInfo();
 
@@ -42,7 +54,8 @@ export async function healthCheck() {
   };
 }
 
-export async function discover() {
+export async function discover({ _deps } = {}) {
+  const { evaluate } = deps(_deps);
   const paths = await evaluate(`
     (function() {
       var results = {};
@@ -88,7 +101,8 @@ export async function discover() {
   return { success: true, apis_available: available, apis_total: total, apis: paths };
 }
 
-export async function uiState() {
+export async function uiState({ _deps } = {}) {
+  const { evaluate } = deps(_deps);
   const state = await evaluate(`
     (function() {
       var ui = {};
@@ -159,10 +173,14 @@ export async function uiState() {
   return { success: true, ...state };
 }
 
-export async function launch({ port, kill_existing } = {}) {
+export async function launch({ port, kill_existing, _deps } = {}) {
+  const { existsSync, execSync, spawn, httpGet } = {
+    ...deps(_deps),
+    httpGet: _deps?.httpGet ?? null,
+  };
   const cdpPort = port || 9222;
   const killFirst = kill_existing !== false;
-  const platform = process.platform;
+  const platform = _deps?.platform ?? process.platform;
 
   const pathMap = {
     darwin: [
@@ -222,17 +240,23 @@ export async function launch({ port, kill_existing } = {}) {
   const child = spawn(tvPath, [`--remote-debugging-port=${cdpPort}`], { detached: true, stdio: 'ignore' });
   child.unref();
 
+  const pollCdp = httpGet
+    ? async () => httpGet(`http://localhost:${cdpPort}/json/version`)
+    : async () => {
+        const http = await import('http');
+        return new Promise((resolve) => {
+          http.get(`http://localhost:${cdpPort}/json/version`, (res) => {
+            let data = '';
+            res.on('data', (chunk) => data += chunk);
+            res.on('end', () => resolve(data));
+          }).on('error', () => resolve(null));
+        });
+      };
+
   for (let i = 0; i < 15; i++) {
     await new Promise(r => setTimeout(r, 1000));
     try {
-      const http = await import('http');
-      const ready = await new Promise((resolve) => {
-        http.get(`http://localhost:${cdpPort}/json/version`, (res) => {
-          let data = '';
-          res.on('data', (chunk) => data += chunk);
-          res.on('end', () => resolve(data));
-        }).on('error', () => resolve(null));
-      });
+      const ready = await pollCdp();
       if (ready) {
         const info = JSON.parse(ready);
         return {
